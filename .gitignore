@@ -1,0 +1,4 @@
+*.sw[A-z]
+sbm
+*.o
+obj
