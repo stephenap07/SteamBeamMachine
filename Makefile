@@ -1,4 +1,4 @@
-CC   = clang++
+CC   = g++
 SRC  = $(wildcard *.cpp) $(wildcard src/*/*.cpp)
 OBJ  = $(addprefix obj/,$(notdir $(SRC:.cpp=.o)))  
 DEPS = $(SRC:%.cpp=obj/%.d)
