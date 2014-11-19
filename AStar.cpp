@@ -129,7 +129,7 @@ void CalculateEdges(std::vector<Polygon> &polygons, std::vector<Edge> &edges)
 {
      for (Polygon &p : polygons) {
         // Assuming that a polygon has at least 3 vertices
-        for (int i = 1; i < p.nodes.size(); i++) {
+        for (unsigned i = 1; i < p.nodes.size(); i++) {
             Node *p1 = &p.nodes[i - 1];
             Node *p2 = &p.nodes[i];
             edges.push_back(Edge{p1, p2});
@@ -147,7 +147,6 @@ void NeighborCalculation(Map &map)
 {
     // N^2
     for (Node *current_node : map.nodes) {
-        bool found_start = false;
         for (Node *other_node : map.nodes) {
             if (*other_node == *current_node) {
                 continue;
@@ -202,7 +201,7 @@ Node *NextNode(std::list<Node*> &node_list)
     return lowest;
 }
 
-int main(int argc, char**argv)
+int DoSolve(int argc, char**argv)
 {
     Map map;
     if (argc < 2) {
