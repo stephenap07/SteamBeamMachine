@@ -9,15 +9,12 @@
 #include "SFMLDebugDraw.h"
 
 
-class Agent {
-};
-
 int main()
 {
     sf::Vector2i screenDimensions(32 * 16, 16 * 16);
 
     sf::RenderWindow window(sf::VideoMode(screenDimensions.x, screenDimensions.y), "Steam Beam Machine v0.0.1");
-	window.setFramerateLimit(120);
+	window.setFramerateLimit(60);
 
     // define the level with an array of tile indices
     const int ground_layer[] = {
