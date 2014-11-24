@@ -9,6 +9,14 @@
 #include "SFMLDebugDraw.h"
 
 
+enum class CollisionType {
+    MID_BLOCK,
+    RIGHT_LEDGE,
+    LEFT_LEDGE,
+    FEET,
+    COUNT
+};
+
 int main()
 {
     sf::Vector2i screenDimensions(32 * 16, 16 * 16);
@@ -82,6 +90,14 @@ int main()
     walkingAnimationLeft.addFrame(sf::IntRect(45, 20, 15, 20));
     walkingAnimationLeft.addFrame(sf::IntRect(0, 40, 15, 20));
 
+    Animation slideAnimationLeft;
+    slideAnimationLeft.setSpriteSheet(spriteTexture);
+    slideAnimationLeft.addFrame(sf::IntRect(15, 40, 15, 20));
+
+    Animation slideAnimationRight;
+    slideAnimationRight.setSpriteSheet(spriteTexture);
+    slideAnimationRight.addFrame(sf::IntRect(30, 40, 15, 20));
+ 
     Animation* currentAnimation = &walkingAnimationRight;
 
     // Mario - 15 frames per 0.5s
@@ -132,7 +148,7 @@ int main()
     dynamicBox.SetAsBox(3.0f / sfdd::SCALE, 2.0f / sfdd::SCALE, b2Vec2(0, 10.0f / sfdd::SCALE), 0);
     fixtureDef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixtureDef);
-    footSensorFixture->SetUserData( (void*)3 );
+    footSensorFixture->SetUserData((void*)&animatedSprite);
 
     float timeStep = 1.0f / 60.0f;
     int velocityIterations = 6;
@@ -151,6 +167,7 @@ int main()
 	fpsCounter.setFont(mainFont);
 	fpsCounter.setColor(sf::Color::Black);
     fpsCounter.setCharacterSize(16);
+    bool faceRight = true;
 
     // run the main loop
     while (window.isOpen())
@@ -172,25 +189,43 @@ int main()
         // if a key was pressed set the correct animation and move correctly
         sf::Vector2f movement(0.f, 0.f);
 
-        //b2Vec2 vec = body->GetVelocity();
+        b2Vec2 vec = body->GetLinearVelocity();
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            currentAnimation = &walkingAnimationLeft;
+            if (vec.x > 0.0f) {
+                currentAnimation = &slideAnimationRight;
+            } else {
+                currentAnimation = &walkingAnimationLeft;
+            }
+
             movement.x -= speed;
             noKeyWasPressed = false;
             body->ApplyLinearImpulse(b2Vec2(-2.0f / sfdd::SCALE, 0), body->GetWorldCenter(), true);
+            faceRight = false;
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            currentAnimation = &walkingAnimationRight;
+            if (vec.x < 0.0f) {
+                currentAnimation = &slideAnimationLeft;
+            } else {
+                currentAnimation = &walkingAnimationRight;
+            }
+
             movement.x += speed;
             noKeyWasPressed = false;
             body->ApplyLinearImpulse(b2Vec2(2.0f / sfdd::SCALE, 0), body->GetWorldCenter(), true);
+            faceRight = true;
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
 
             body->ApplyLinearImpulse(b2Vec2(0, -0.85f * 25.0f), body->GetWorldCenter(), true);
+        }
+
+        if (faceRight && vec.x == 0.0f) {
+            currentAnimation = &walkingAnimationRight;
+        } else if (!faceRight && vec.x == 0.0f) {
+            currentAnimation = &walkingAnimationLeft;
         }
 
         animatedSprite.play(*currentAnimation);
