@@ -175,7 +175,7 @@ int main()
         // if a key was pressed set the correct animation and move correctly
         sf::Vector2f movement(0.f, 0.f);
 
-        b2Vec2 vec = body->GetVelocity();
+        //b2Vec2 vec = body->GetVelocity();
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             currentAnimation = &walkingAnimationLeft;

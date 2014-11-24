@@ -21,6 +21,8 @@
 //
 ////////////////////////////////////////////////////////////
 
+#include <cstdlib>
+#include <cmath>
 #include "AnimatedSprite.hpp"
 
 AnimatedSprite::AnimatedSprite(sf::Time frameTime, bool paused, bool looped) :
