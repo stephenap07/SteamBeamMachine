@@ -61,7 +61,6 @@ private:
     std::size_t m_currentFrame;
     bool m_isPaused;
     bool m_isLooped;
-    bool m_isFlipped;
     const sf::Texture* m_texture;
     sf::Vertex m_vertices[4];
 
