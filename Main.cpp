@@ -86,7 +86,10 @@ int main()
     walkingAnimationLeft.addFrame(sf::IntRect(0, 40, 15, 20));
 
     Animation* currentAnimation = &walkingAnimationRight;
-    AnimatedSprite animatedSprite(sf::seconds(0.10f), true, false);
+
+    // Mario - 15 frames per 0.5s
+    // Animation - 4 frames, 0.5s / (15/4) = 0.13
+    AnimatedSprite animatedSprite(sf::seconds(0.13f), true, false);
     animatedSprite.setPosition(sf::Vector2f(0, 0));
     float speed = 80.0f;
     bool noKeyWasPressed = true;
