@@ -9,6 +9,8 @@
 #include "SFMLDebugDraw.h"
 
 
+class Agent {
+};
 
 int main()
 {
@@ -91,33 +93,46 @@ int main()
 
     sf::Clock frameClock;
 
-    b2Vec2 gravity(0.0f, 10.0f);
-    b2World world(gravity);
-    b2BodyDef groundBodyDef;
-    groundBodyDef.position.Set(0.0f, 18.0f);
-    b2Body *groundBody = world.CreateBody(&groundBodyDef);
-    b2PolygonShape groundBox;
-    groundBox.SetAsBox(7.5f, 10.0f); 
-    groundBody->CreateFixture(&groundBox, 0.0f);
+    //float xPos = (window.getSize().x / 2.f) / sfdd::SCALE;
+	float yPos = (window.getSize().y) / sfdd::SCALE - 1.f;
 
+
+    b2Vec2 gravity(0.0f, 25.0f);
+    b2World world(gravity);
 	SFMLDebugDraw debugDraw(window);
 	world.SetDebugDraw(&debugDraw);
 	debugDraw.SetFlags(b2Draw::e_shapeBit); //Only draw shapes
 
+    b2BodyDef groundBodyDef;
+    groundBodyDef.position.Set(0.0f, 0.0f / sfdd::SCALE);
+    b2Body *groundBody = world.CreateBody(&groundBodyDef);
+    b2PolygonShape groundBox;
+
+	yPos = (window.getSize().y) / sfdd::SCALE - 1.f;
+    groundBox.SetAsBox((window.getSize().x) / sfdd::SCALE, 16.0f / sfdd::SCALE, b2Vec2(0.f, yPos), 0.f); 
+    groundBody->CreateFixture(&groundBox, 0.0f);
+
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(0.0f, 4.0f);
+    bodyDef.fixedRotation = true;
+    bodyDef.position.Set(10.0f / sfdd::SCALE, 4.0f / sfdd::SCALE);
     b2Body* body = world.CreateBody(&bodyDef);
 
     b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(1.0f, 1.0f);
+    dynamicBox.SetAsBox(12.0f / 2.0f / sfdd::SCALE, 18.0f / 2.0f / sfdd::SCALE);
 
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &dynamicBox;
     fixtureDef.density = 1.0f;
-    fixtureDef.friction = 0.3f;
+    fixtureDef.friction = 0.1f;
 
     body->CreateFixture(&fixtureDef);
+
+    //add foot sensor fixture
+    dynamicBox.SetAsBox(3.0f / sfdd::SCALE, 2.0f / sfdd::SCALE, b2Vec2(0, 10.0f / sfdd::SCALE), 0);
+    fixtureDef.isSensor = true;
+    b2Fixture* footSensorFixture = body->CreateFixture(&fixtureDef);
+    footSensorFixture->SetUserData( (void*)3 );
 
     float timeStep = 1.0f / 60.0f;
     int velocityIterations = 6;
@@ -148,7 +163,7 @@ int main()
                 window.close();
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Escape)
-                window.close();
+                    window.close();
             }
         }
 
@@ -157,19 +172,29 @@ int main()
         // if a key was pressed set the correct animation and move correctly
         sf::Vector2f movement(0.f, 0.f);
 
+        b2Vec2 vec = body->GetVelocity();
+
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             currentAnimation = &walkingAnimationLeft;
             movement.x -= speed;
             noKeyWasPressed = false;
+            body->ApplyLinearImpulse(b2Vec2(-2.0f / sfdd::SCALE, 0), body->GetWorldCenter(), true);
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
             currentAnimation = &walkingAnimationRight;
             movement.x += speed;
             noKeyWasPressed = false;
+            body->ApplyLinearImpulse(b2Vec2(2.0f / sfdd::SCALE, 0), body->GetWorldCenter(), true);
         }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
+
+            body->ApplyLinearImpulse(b2Vec2(0, -0.85f * 25.0f), body->GetWorldCenter(), true);
+        }
+
         animatedSprite.play(*currentAnimation);
-        animatedSprite.move(movement * frameTime.asSeconds());
+        //animatedSprite.move(movement * frameTime.asSeconds());
 
         // if no key was pressed stop the animation
         if (noKeyWasPressed) {
@@ -179,14 +204,18 @@ int main()
 
         // Box2D updating
         world.Step(timeStep, velocityIterations, positionIterations);
+        animatedSprite.setPosition(body->GetPosition().x * sfdd::SCALE - 12.0f/2.0f, body->GetPosition().y * sfdd::SCALE - 18.0f/2.0f);
 
-        // Agent rendering
+        // Agent updating
         animatedSprite.update(frameTime);
 
         window.clear();
 
+        // Map Rendering
         window.draw(mapLayerBackground);
         window.draw(mapLayerGround);
+
+        // Agent rendering
         window.draw(animatedSprite);
 		world.DrawDebugData();
 
@@ -198,7 +227,6 @@ int main()
 			window.draw(fpsCounter);
 			sstream.str("");
 		}
-
 
         window.display();
     }
