@@ -1,71 +1,21 @@
 #include <iostream>
+#include <sstream>
 #include <cassert>
 #include <SFML/Graphics.hpp>
+#include <Box2D/Box2D.h>
 
-class TileMap : public sf::Drawable, public sf::Transformable {
-public:
+#include "TileMap.hpp"
+#include "AnimatedSprite.hpp"
+#include "SFMLDebugDraw.h"
 
-    bool load(const std::string& tileset, sf::Vector2u tile_size, const int* tiles, unsigned int width, unsigned int height)
-    {
-        // load the tileset texture
-        if (!m_tileset.loadFromFile(tileset))
-            return false;
-
-        // resize the vertex array to fit the level size
-        m_vertices.setPrimitiveType(sf::Quads);
-        m_vertices.resize(width * height * 4);
-
-        // populate the vertex array, with one quad per tile
-        for (unsigned int i = 0; i < width; ++i)
-            for (unsigned int j = 0; j < height; ++j) {
-                // get the current tile number
-                int tile_number = tiles[i + j * width];
-
-                // find its position in the tileset texture
-                int tu = tile_number % (m_tileset.getSize().x / tile_size.x);
-                int tv = tile_number / (m_tileset.getSize().x / tile_size.x);
-
-                // get a pointer to the current tile's quad
-                sf::Vertex* quad = &m_vertices[(i + j * width) * 4];
-
-                // define its 4 corners
-                quad[0].position = sf::Vector2f(i * tile_size.x, j * tile_size.y);
-                quad[1].position = sf::Vector2f((i + 1) * tile_size.x, j * tile_size.y);
-                quad[2].position = sf::Vector2f((i + 1) * tile_size.x, (j + 1) * tile_size.y);
-                quad[3].position = sf::Vector2f(i * tile_size.x, (j + 1) * tile_size.y);
-
-                // define its 4 texture coordinates
-                quad[0].texCoords = sf::Vector2f(tu * tile_size.x, tv * tile_size.y);
-                quad[1].texCoords = sf::Vector2f((tu + 1) * tile_size.x, tv * tile_size.y);
-                quad[2].texCoords = sf::Vector2f((tu + 1) * tile_size.x, (tv + 1) * tile_size.y);
-                quad[3].texCoords = sf::Vector2f(tu * tile_size.x, (tv + 1) * tile_size.y);
-            }
-
-        return true;
-    }
-
-private:
-
-    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const
-    {
-        // apply the transform
-        states.transform *= getTransform();
-
-        // apply the tileset texture
-        states.texture = &m_tileset;
-
-        // draw the vertex array
-        target.draw(m_vertices, states);
-    }
-
-    sf::VertexArray m_vertices;
-    sf::Texture m_tileset;
-};
 
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(32 * 16, 16 * 16), "Steam Beam Machine v0.0.1");
+    sf::Vector2i screenDimensions(32 * 16, 16 * 16);
+
+    sf::RenderWindow window(sf::VideoMode(screenDimensions.x, screenDimensions.y), "Steam Beam Machine v0.0.1");
+	window.setFramerateLimit(120);
 
     // define the level with an array of tile indices
     const int ground_layer[] = {
@@ -108,12 +58,84 @@ int main()
     };
 
     // create the tilemap from the level definition
-    TileMap map_layer_ground;
-    TileMap map_layer_background;
-    if (!map_layer_ground.load("tiles.png", sf::Vector2u(16, 16), ground_layer, 32, 16))
+    TileMap mapLayerGround;
+    TileMap mapLayerBackground;
+
+    if (!mapLayerGround.load("tiles.png", sf::Vector2u(16, 16), ground_layer, 32, 16))
         return -1;
-    if (!map_layer_background.load("tiles.png", sf::Vector2u(16, 16), sky_layer, 32, 16))
+    if (!mapLayerBackground.load("tiles.png", sf::Vector2u(16, 16), sky_layer, 32, 16))
         return -1;
+
+    sf::Texture spriteTexture;
+    spriteTexture.loadFromFile("agent.png");
+
+    Animation walkingAnimationRight;
+    walkingAnimationRight.setSpriteSheet(spriteTexture);
+    walkingAnimationRight.addFrame(sf::IntRect(0, 0, 15, 20));
+    walkingAnimationRight.addFrame(sf::IntRect(15, 0, 15, 20));
+    walkingAnimationRight.addFrame(sf::IntRect(30, 0, 15, 20));
+    walkingAnimationRight.addFrame(sf::IntRect(0, 20, 15, 20));
+
+    Animation walkingAnimationLeft;
+    walkingAnimationLeft.setSpriteSheet(spriteTexture);
+    walkingAnimationLeft.addFrame(sf::IntRect(15, 20, 15, 20));
+    walkingAnimationLeft.addFrame(sf::IntRect(30, 20, 15, 20));
+    walkingAnimationLeft.addFrame(sf::IntRect(45, 20, 15, 20));
+    walkingAnimationLeft.addFrame(sf::IntRect(0, 40, 15, 20));
+
+    Animation* currentAnimation = &walkingAnimationRight;
+    AnimatedSprite animatedSprite(sf::seconds(0.10f), true, false);
+    animatedSprite.setPosition(sf::Vector2f(0, 0));
+    float speed = 80.0f;
+    bool noKeyWasPressed = true;
+
+    sf::Clock frameClock;
+
+    b2Vec2 gravity(0.0f, 10.0f);
+    b2World world(gravity);
+    b2BodyDef groundBodyDef;
+    groundBodyDef.position.Set(0.0f, 18.0f);
+    b2Body *groundBody = world.CreateBody(&groundBodyDef);
+    b2PolygonShape groundBox;
+    groundBox.SetAsBox(7.5f, 10.0f); 
+    groundBody->CreateFixture(&groundBox, 0.0f);
+
+	SFMLDebugDraw debugDraw(window);
+	world.SetDebugDraw(&debugDraw);
+	debugDraw.SetFlags(b2Draw::e_shapeBit); //Only draw shapes
+
+    b2BodyDef bodyDef;
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position.Set(0.0f, 4.0f);
+    b2Body* body = world.CreateBody(&bodyDef);
+
+    b2PolygonShape dynamicBox;
+    dynamicBox.SetAsBox(1.0f, 1.0f);
+
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &dynamicBox;
+    fixtureDef.density = 1.0f;
+    fixtureDef.friction = 0.3f;
+
+    body->CreateFixture(&fixtureDef);
+
+    float timeStep = 1.0f / 60.0f;
+    int velocityIterations = 6;
+    int positionIterations = 2;
+
+	// Initialize debug text
+    std::stringstream sstream;
+	sf::Text fpsCounter;
+
+	sf::Font mainFont;
+
+	if(!mainFont.loadFromFile("SPFont.ttf")) {
+        exit(1);
+    }
+
+	fpsCounter.setFont(mainFont);
+	fpsCounter.setColor(sf::Color::Black);
+    fpsCounter.setCharacterSize(16);
 
     // run the main loop
     while (window.isOpen())
@@ -122,14 +144,62 @@ int main()
         sf::Event event;
         while (window.pollEvent(event))
         {
-            if(event.type == sf::Event::Closed)
+            if (event.type == sf::Event::Closed)
                 window.close();
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Escape)
+                window.close();
+            }
         }
 
-        // draw the map_layer_ground
+        sf::Time frameTime = frameClock.restart();
+
+        // if a key was pressed set the correct animation and move correctly
+        sf::Vector2f movement(0.f, 0.f);
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+            currentAnimation = &walkingAnimationLeft;
+            movement.x -= speed;
+            noKeyWasPressed = false;
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+            currentAnimation = &walkingAnimationRight;
+            movement.x += speed;
+            noKeyWasPressed = false;
+        }
+        animatedSprite.play(*currentAnimation);
+        animatedSprite.move(movement * frameTime.asSeconds());
+
+        // if no key was pressed stop the animation
+        if (noKeyWasPressed) {
+            animatedSprite.stop();
+        }
+        noKeyWasPressed = true;
+
+        // Box2D updating
+        world.Step(timeStep, velocityIterations, positionIterations);
+
+        // Agent rendering
+        animatedSprite.update(frameTime);
+
         window.clear();
-        window.draw(map_layer_background);
-        window.draw(map_layer_ground);
+
+        window.draw(mapLayerBackground);
+        window.draw(mapLayerGround);
+        window.draw(animatedSprite);
+		world.DrawDebugData();
+
+        // Display FPS
+		{
+			sstream.precision(0);
+			sstream << std::fixed << "FPS: " << 1.f / frameTime.asSeconds();
+			fpsCounter.setString(sstream.str());
+			window.draw(fpsCounter);
+			sstream.str("");
+		}
+
+
         window.display();
     }
 

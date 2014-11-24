@@ -3,7 +3,7 @@ SRC  = $(wildcard *.cpp) $(wildcard src/*/*.cpp)
 OBJ  = $(addprefix obj/,$(notdir $(SRC:.cpp=.o)))  
 DEPS = $(SRC:%.cpp=obj/%.d)
 
-LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system -lBox2D
 CFLAGS  = -pedantic -ansi -std=c++11 -Wall -fPIC -g -I/usr/local/include
 
 EXE = sbm
