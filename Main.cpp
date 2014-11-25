@@ -2,11 +2,9 @@
 #include <sstream>
 #include <cassert>
 #include <SFML/Graphics.hpp>
-#include <Box2D/Box2D.h>
 
 #include "TileMap.hpp"
 #include "AnimatedSprite.hpp"
-#include "SFMLDebugDraw.h"
 
 
 enum class CollisionType {
@@ -109,51 +107,6 @@ int main()
 
     sf::Clock frameClock;
 
-    //float xPos = (window.getSize().x / 2.f) / sfdd::SCALE;
-	float yPos = (window.getSize().y) / sfdd::SCALE - 1.f;
-
-
-    b2Vec2 gravity(0.0f, 25.0f);
-    b2World world(gravity);
-	SFMLDebugDraw debugDraw(window);
-	world.SetDebugDraw(&debugDraw);
-	debugDraw.SetFlags(b2Draw::e_shapeBit); //Only draw shapes
-
-    b2BodyDef groundBodyDef;
-    groundBodyDef.position.Set(0.0f, 0.0f / sfdd::SCALE);
-    b2Body *groundBody = world.CreateBody(&groundBodyDef);
-    b2PolygonShape groundBox;
-
-	yPos = (window.getSize().y) / sfdd::SCALE - 1.f;
-    groundBox.SetAsBox((window.getSize().x) / sfdd::SCALE, 16.0f / sfdd::SCALE, b2Vec2(0.f, yPos), 0.f); 
-    groundBody->CreateFixture(&groundBox, 0.0f);
-
-    b2BodyDef bodyDef;
-    bodyDef.type = b2_dynamicBody;
-    bodyDef.fixedRotation = true;
-    bodyDef.position.Set(10.0f / sfdd::SCALE, 4.0f / sfdd::SCALE);
-    b2Body* body = world.CreateBody(&bodyDef);
-
-    b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(12.0f / 2.0f / sfdd::SCALE, 18.0f / 2.0f / sfdd::SCALE);
-
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = &dynamicBox;
-    fixtureDef.density = 1.0f;
-    fixtureDef.friction = 0.1f;
-
-    body->CreateFixture(&fixtureDef);
-
-    //add foot sensor fixture
-    dynamicBox.SetAsBox(3.0f / sfdd::SCALE, 2.0f / sfdd::SCALE, b2Vec2(0, 10.0f / sfdd::SCALE), 0);
-    fixtureDef.isSensor = true;
-    b2Fixture* footSensorFixture = body->CreateFixture(&fixtureDef);
-    footSensorFixture->SetUserData((void*)&animatedSprite);
-
-    float timeStep = 1.0f / 60.0f;
-    int velocityIterations = 6;
-    int positionIterations = 2;
-
 	// Initialize debug text
     std::stringstream sstream;
 	sf::Text fpsCounter;
@@ -167,6 +120,9 @@ int main()
 	fpsCounter.setFont(mainFont);
 	fpsCounter.setColor(sf::Color::Black);
     fpsCounter.setCharacterSize(16);
+    sf::Time fpsTimer;
+    bool timerInitialRun = true;
+
     bool faceRight = true;
 
     // run the main loop
@@ -189,57 +145,48 @@ int main()
         // if a key was pressed set the correct animation and move correctly
         sf::Vector2f movement(0.f, 0.f);
 
-        b2Vec2 vec = body->GetLinearVelocity();
-
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            if (vec.x > 0.0f) {
-                currentAnimation = &slideAnimationRight;
-            } else {
-                currentAnimation = &walkingAnimationLeft;
-            }
+            //if (vec.x > 0.0f) {
+                //currentAnimation = &slideAnimationRight;
+            //} else {
+            currentAnimation = &walkingAnimationLeft;
+            //}
 
             movement.x -= speed;
             noKeyWasPressed = false;
-            body->ApplyLinearImpulse(b2Vec2(-2.0f / sfdd::SCALE, 0), body->GetWorldCenter(), true);
             faceRight = false;
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            if (vec.x < 0.0f) {
-                currentAnimation = &slideAnimationLeft;
-            } else {
-                currentAnimation = &walkingAnimationRight;
-            }
+            //if (vec.x < 0.0f) {
+             //   currentAnimation = &slideAnimationLeft;
+            //} else {
+            currentAnimation = &walkingAnimationRight;
+            //}
 
             movement.x += speed;
             noKeyWasPressed = false;
-            body->ApplyLinearImpulse(b2Vec2(2.0f / sfdd::SCALE, 0), body->GetWorldCenter(), true);
             faceRight = true;
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
-
-            body->ApplyLinearImpulse(b2Vec2(0, -0.85f * 25.0f), body->GetWorldCenter(), true);
+            // jump
         }
 
-        if (faceRight && vec.x == 0.0f) {
-            currentAnimation = &walkingAnimationRight;
-        } else if (!faceRight && vec.x == 0.0f) {
-            currentAnimation = &walkingAnimationLeft;
-        }
+        //if (faceRight && vec.x == 0.0f) {
+         //   currentAnimation = &walkingAnimationRight;
+        //} else if (!faceRight && vec.x == 0.0f) {
+         //   currentAnimation = &walkingAnimationLeft;
+        //}
 
         animatedSprite.play(*currentAnimation);
-        //animatedSprite.move(movement * frameTime.asSeconds());
+        animatedSprite.move(movement * frameTime.asSeconds());
 
         // if no key was pressed stop the animation
         if (noKeyWasPressed) {
             animatedSprite.stop();
         }
         noKeyWasPressed = true;
-
-        // Box2D updating
-        world.Step(timeStep, velocityIterations, positionIterations);
-        animatedSprite.setPosition(body->GetPosition().x * sfdd::SCALE - 12.0f/2.0f, body->GetPosition().y * sfdd::SCALE - 18.0f/2.0f);
 
         // Agent updating
         animatedSprite.update(frameTime);
@@ -252,16 +199,18 @@ int main()
 
         // Agent rendering
         window.draw(animatedSprite);
-		world.DrawDebugData();
 
         // Display FPS
-		{
+        fpsTimer = fpsTimer + frameTime;
+        if (fpsTimer > sf::seconds(0.5f) || timerInitialRun) {
 			sstream.precision(0);
 			sstream << std::fixed << "FPS: " << 1.f / frameTime.asSeconds();
 			fpsCounter.setString(sstream.str());
-			window.draw(fpsCounter);
 			sstream.str("");
+            fpsTimer = sf::seconds(0);
+            timerInitialRun = false;
 		}
+        window.draw(fpsCounter);
 
         window.display();
     }
