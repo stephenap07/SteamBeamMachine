@@ -1,0 +1,52 @@
+﻿Build started 11/26/2014 12:18:36 AM.
+     1>Project "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Gdevelopment\SFML-2.1\include" /Zi /nologo /W3 /WX- /Od /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt ..\..\Main.cpp
+         Main.cpp
+     1>c:\users\stephen\source\repos\steambeammachine\TileMap.hpp(33): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
+     1>c:\users\stephen\source\repos\steambeammachine\TileMap.hpp(34): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
+     1>c:\users\stephen\source\repos\steambeammachine\TileMap.hpp(35): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
+     1>c:\users\stephen\source\repos\steambeammachine\TileMap.hpp(36): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
+     1>c:\users\stephen\source\repos\steambeammachine\TileMap.hpp(39): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
+     1>c:\users\stephen\source\repos\steambeammachine\TileMap.hpp(40): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
+     1>c:\users\stephen\source\repos\steambeammachine\TileMap.hpp(41): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
+     1>c:\users\stephen\source\repos\steambeammachine\TileMap.hpp(42): warning C4244: 'argument' : conversion from 'unsigned int' to 'float', possible loss of data
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\SteamBeamMachine.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Gdevelopment\SFML-2.1\lib\Debug" "sfml-graphics-d.lib" "sfml-window-d.lib" "sfml-system-d.lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\SteamBeamMachine.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\SteamBeamMachine.lib" /MACHINE:X64 x64\Debug\AnimatedSprite.obj
+         x64\Debug\Animation.obj
+         x64\Debug\AStar.obj
+         x64\Debug\Main.obj
+         SteamBeamMachine.vcxproj -> C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\SteamBeamMachine.exe
+       PostBuildEvent:
+         copy "C:\Gdevelopment\SFML-2.1\lib\Debug\sfml-graphics-d-2.dll" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Gdevelopment\SFML-2.1\lib\Debug\sfml-window-d-2.dll" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Gdevelopment\SFML-2.1\lib\Debug\sfml-system-d-2.dll" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine.sln\..\..\agent.png" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine.sln\..\..\tiles.png" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine.sln\..\..\SPFont.ttf" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         
+         copy "C:\Gdevelopment\SFML-2.1\lib\Debug\sfml-graphics-d-2.dll" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Gdevelopment\SFML-2.1\lib\Debug\sfml-window-d-2.dll" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Gdevelopment\SFML-2.1\lib\Debug\sfml-system-d-2.dll" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine.sln\..\..\agent.png" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine.sln\..\..\tiles.png" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         copy "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine.sln\..\..\SPFont.ttf" "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\x64\Debug\"
+         
+         :VCEnd
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+                 1 file(s) copied.
+     1>Done Building Project "C:\Users\Stephen\Source\Repos\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine\SteamBeamMachine.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.15
