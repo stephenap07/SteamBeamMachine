@@ -5,7 +5,7 @@
 
 #include "TileMap.hpp"
 #include "AnimatedSprite.hpp"
-#include "Agent.hpp"
+#include "Steamy.hpp"
 
 
 enum class CollisionType {
@@ -74,10 +74,7 @@ int main()
     if (!mapLayerBackground.load(tilePath, sf::Vector2u(16, 16), sky_layer, 32, 16))
         return -1;
 
-
-	Agent agent;
-	KeyboardController controller;
-	controller.agent = &agent;
+	Steamy agent;
 
 	// Initialize debug text
     std::stringstream sstream;
@@ -90,14 +87,13 @@ int main()
 	fpsCounter.setFont(mainFont);
 	fpsCounter.setColor(sf::Color::Black);
     fpsCounter.setCharacterSize(16);
+
     sf::Time fpsTimer;
     bool timerInitialRun = true;
     sf::Clock frameClock;
 
-    // run the main loop
     while (window.isOpen())
     {
-        // handle events
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -110,25 +106,11 @@ int main()
         }
 
         sf::Time frameTime = frameClock.restart();
-
-        //if (faceRight && vec.x == 0.0f) {
-         //   currentAnimation = &walkingAnimationRight;
-        //} else if (!faceRight && vec.x == 0.0f) {
-         //   currentAnimation = &walkingAnimationLeft;
-        //}
-
-        // if no key was pressed stop the animation
-        // Agent updating
 		agent.update(frameTime);
-		controller.update(frameTime);
 
         window.clear();
-
-        // Map Rendering
         window.draw(mapLayerBackground);
         window.draw(mapLayerGround);
-
-        // Agent rendering
         window.draw(*agent.animatedSprite);
 
         // Display FPS
