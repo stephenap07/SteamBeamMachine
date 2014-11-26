@@ -5,6 +5,7 @@
 
 #include "TileMap.hpp"
 #include "AnimatedSprite.hpp"
+#include "Agent.hpp"
 
 
 enum class CollisionType {
@@ -14,6 +15,7 @@ enum class CollisionType {
     FEET,
     COUNT
 };
+
 
 int main()
 {
@@ -66,53 +68,21 @@ int main()
     TileMap mapLayerGround;
     TileMap mapLayerBackground;
 
-    if (!mapLayerGround.load("tiles.png", sf::Vector2u(16, 16), ground_layer, 32, 16))
+	const auto tilePath = "tiles.png";
+	if (!mapLayerGround.load(tilePath, sf::Vector2u(16, 16), ground_layer, 32, 16))
         return -1;
-    if (!mapLayerBackground.load("tiles.png", sf::Vector2u(16, 16), sky_layer, 32, 16))
+    if (!mapLayerBackground.load(tilePath, sf::Vector2u(16, 16), sky_layer, 32, 16))
         return -1;
 
-    sf::Texture spriteTexture;
-    spriteTexture.loadFromFile("agent.png");
 
-    Animation walkingAnimationRight;
-    walkingAnimationRight.setSpriteSheet(spriteTexture);
-    walkingAnimationRight.addFrame(sf::IntRect(0, 0, 15, 20));
-    walkingAnimationRight.addFrame(sf::IntRect(15, 0, 15, 20));
-    walkingAnimationRight.addFrame(sf::IntRect(30, 0, 15, 20));
-    walkingAnimationRight.addFrame(sf::IntRect(0, 20, 15, 20));
-
-    Animation walkingAnimationLeft;
-    walkingAnimationLeft.setSpriteSheet(spriteTexture);
-    walkingAnimationLeft.addFrame(sf::IntRect(15, 20, 15, 20));
-    walkingAnimationLeft.addFrame(sf::IntRect(30, 20, 15, 20));
-    walkingAnimationLeft.addFrame(sf::IntRect(45, 20, 15, 20));
-    walkingAnimationLeft.addFrame(sf::IntRect(0, 40, 15, 20));
-
-    Animation slideAnimationLeft;
-    slideAnimationLeft.setSpriteSheet(spriteTexture);
-    slideAnimationLeft.addFrame(sf::IntRect(15, 40, 15, 20));
-
-    Animation slideAnimationRight;
-    slideAnimationRight.setSpriteSheet(spriteTexture);
-    slideAnimationRight.addFrame(sf::IntRect(30, 40, 15, 20));
- 
-    Animation* currentAnimation = &walkingAnimationRight;
-
-    // Mario - 15 frames per 0.5s
-    // Animation - 4 frames, 0.5s / (15/4) = 0.13
-    AnimatedSprite animatedSprite(sf::seconds(0.13f), true, false);
-    animatedSprite.setPosition(sf::Vector2f(0, 0));
-    float speed = 80.0f;
-    bool noKeyWasPressed = true;
-
-    sf::Clock frameClock;
+	Agent agent;
+	KeyboardController controller;
+	controller.agent = &agent;
 
 	// Initialize debug text
     std::stringstream sstream;
 	sf::Text fpsCounter;
-
 	sf::Font mainFont;
-
 	if(!mainFont.loadFromFile("SPFont.ttf")) {
         exit(1);
     }
@@ -122,8 +92,7 @@ int main()
     fpsCounter.setCharacterSize(16);
     sf::Time fpsTimer;
     bool timerInitialRun = true;
-
-    bool faceRight = true;
+    sf::Clock frameClock;
 
     // run the main loop
     while (window.isOpen())
@@ -142,54 +111,16 @@ int main()
 
         sf::Time frameTime = frameClock.restart();
 
-        // if a key was pressed set the correct animation and move correctly
-        sf::Vector2f movement(0.f, 0.f);
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            //if (vec.x > 0.0f) {
-                //currentAnimation = &slideAnimationRight;
-            //} else {
-            currentAnimation = &walkingAnimationLeft;
-            //}
-
-            movement.x -= speed;
-            noKeyWasPressed = false;
-            faceRight = false;
-        }
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            //if (vec.x < 0.0f) {
-             //   currentAnimation = &slideAnimationLeft;
-            //} else {
-            currentAnimation = &walkingAnimationRight;
-            //}
-
-            movement.x += speed;
-            noKeyWasPressed = false;
-            faceRight = true;
-        }
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
-            // jump
-        }
-
         //if (faceRight && vec.x == 0.0f) {
          //   currentAnimation = &walkingAnimationRight;
         //} else if (!faceRight && vec.x == 0.0f) {
          //   currentAnimation = &walkingAnimationLeft;
         //}
 
-        animatedSprite.play(*currentAnimation);
-        animatedSprite.move(movement * frameTime.asSeconds());
-
         // if no key was pressed stop the animation
-        if (noKeyWasPressed) {
-            animatedSprite.stop();
-        }
-        noKeyWasPressed = true;
-
         // Agent updating
-        animatedSprite.update(frameTime);
+		agent.update(frameTime);
+		controller.update(frameTime);
 
         window.clear();
 
@@ -198,7 +129,7 @@ int main()
         window.draw(mapLayerGround);
 
         // Agent rendering
-        window.draw(animatedSprite);
+        window.draw(*agent.animatedSprite);
 
         // Display FPS
         fpsTimer = fpsTimer + frameTime;

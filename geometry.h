@@ -1,5 +1,5 @@
-#ifndef _SP_GEOMETRY_H_
-#define _SP_GEOMETRY_H_
+#ifndef GEOMETRY_H_
+#define GEOMETRY_H_
 
 #include "node.h"
 
@@ -62,4 +62,4 @@ bool doIntersect(Node p1, Node q1, Node p2, Node q2)
     return false; // Doesn't fall in any of the above cases
 }
 
-#endif
+#endif // GEOMETRY_H
