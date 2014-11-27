@@ -1,11 +1,13 @@
 #include <iostream>
 #include <sstream>
 #include <cassert>
+#include <iterator>
 #include <SFML/Graphics.hpp>
 
 #include "TileMap.hpp"
 #include "AnimatedSprite.hpp"
 #include "Steamy.hpp"
+#include "CollisionController.hpp"
 
 
 enum class CollisionType {
@@ -42,7 +44,6 @@ int main()
         41, 41, 41, 41, 41, 41, 41, 41, 41, 42,  0,  0,  0, 40, 41, 41, 41, 41, 81, 81, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
         81, 81, 81, 81, 81, 81, 81, 81, 81, 81,  0,  0,  0, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
         81, 81, 81, 81, 81, 81, 81, 81, 81, 81,  0,  0,  0, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
-        81, 81, 81, 81, 81, 81, 81, 81, 81, 81,  0,  0,  0, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81
     };
 
     const int sky_layer[] = {
@@ -75,6 +76,16 @@ int main()
         return -1;
 
 	Steamy agent;
+
+    auto collisionController = std::shared_ptr<CollisionManager>(new CollisionManager);
+    int dest[32*16];
+    std::copy(std::begin(ground_layer), std::end(ground_layer), std::begin(dest));
+    collisionController->map = dest;
+    collisionController->tileSize = 16;
+    collisionController->mapWidth = 32;
+    collisionController->mapHeight = 16;
+
+    agent.controllers.push_back(collisionController);
 
 	// Initialize debug text
     std::stringstream sstream;
