@@ -8,7 +8,7 @@ template <typename T> int sign(T val) {
         return (T(0) < val) - (val < T(0));
 }
 
-enum class COMMAND {
+enum class command_e {
     WALK_RIGHT,
     WALK_LEFT,
     JUMP,
@@ -17,23 +17,77 @@ enum class COMMAND {
 
 
 struct Event {
-    std::vector<COMMAND> commands;
+    std::vector<command_e> commands;
     sf::Time eventTime;
 };
 
 
-struct KeyboardController : Controller {
-    KeyboardController() :playRecording(false), currentEventIndex(0) {
-        sf::Time timer;
-        Event ev {{COMMAND::STOP}, timer};
-        events.push_back(ev);
+class EventManager {
+
+public:
+
+    EventManager() :currentEvent(nullptr), m_currentEventIndex(0)
+    {}
+
+    void pushCommand(Event &event, command_e command)
+    {
+        if (m_lastCommand != command)
+            event.commands.push_back(command);
+        m_lastCommand = command;
     }
 
-    void pushCommand(Event &event, COMMAND command)
+    void pushEvent(const Event &event)
     {
-        if (lastCommand != command)
-            event.commands.push_back(command);
-        lastCommand = command;
+        if (event.commands.size()) {
+            events.push_back(event);
+            currentEvent = &events[events.size() - 1];
+            m_currentEventIndex = events.size() - 1;
+        }
+    }
+
+    void startReplay()
+    {
+        Event event = {
+            {},
+            sf::seconds(0) 
+        };
+
+        pushCommand(event, command_e::STOP);
+        currentEvent = &events[0];
+        m_currentEventIndex = 0;
+    }
+
+    bool nextEvent(const sf::Time &timer)
+    {
+        Event *nextEvent = nullptr;
+        if (m_currentEventIndex < static_cast<int>(events.size()) - 1) {
+            nextEvent = &events[m_currentEventIndex + 1];
+            if (nextEvent->eventTime <= timer) {
+                m_currentEventIndex = m_currentEventIndex + 1;
+                currentEvent = nextEvent;
+            }
+        }
+        if (m_currentEventIndex == (static_cast<int>(events.size()) - 1)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    Event *currentEvent;
+    std::vector<Event> events;
+private:
+    int m_currentEventIndex;
+    command_e m_lastCommand;
+};
+
+struct KeyboardController : Controller {
+
+    KeyboardController() :playRecording(false)
+    {
+        sf::Time timer;
+        Event ev {{command_e::STOP}, timer};
+        eventManager.pushEvent(ev);
     }
 
 	virtual void update(sf::Time timeDelta, Agent *agent)
@@ -41,6 +95,7 @@ struct KeyboardController : Controller {
         timer += timeDelta;
         PhysicalProperties *phys = &(agent->phys);
         phys->jumpAcceleration = 0.0f;
+
         Event event = {
             {},
             timer
@@ -48,48 +103,37 @@ struct KeyboardController : Controller {
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
             playRecording = true;
-            pushCommand(event, COMMAND::STOP);
-            currentEvent = &events[0];
-            currentEventIndex = 0;
-            agent->animatedSprite->setPosition(0, 0);
             timer = sf::seconds(0);
+            eventManager.startReplay();
+            agent->animatedSprite->setPosition(0, 0);
         }
 
         if (!playRecording) {
             bool noKeyWasPressed = true;
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
                 noKeyWasPressed = false;
-                pushCommand(event, COMMAND::WALK_LEFT);
+                eventManager.pushCommand(event, command_e::WALK_LEFT);
             }
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
                 noKeyWasPressed = false;
-                pushCommand(event, COMMAND::WALK_RIGHT);
+                eventManager.pushCommand(event, command_e::WALK_RIGHT);
             }
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z) && phys->isOnGround) {
                 noKeyWasPressed = false;
-                pushCommand(event, COMMAND::JUMP);
+                eventManager.pushCommand(event, command_e::JUMP);
             }
 
             if (noKeyWasPressed) {
-                pushCommand(event, COMMAND::STOP);
+                eventManager.pushCommand(event, command_e::STOP);
             } else
                 noKeyWasPressed = true;
 
-            if (event.commands.size())
-                events.push_back(event);
-            
-            currentEvent = &events[events.size() - 1];
-            currentEventIndex = events.size() - 1;
+            eventManager.pushEvent(event);
         } else {
-            Event *nextEvent = nullptr;
-            if (currentEventIndex < events.size() - 1) {
-                nextEvent = &events[currentEventIndex + 1];
-                if (nextEvent->eventTime <= timer) {
-                    currentEventIndex = currentEventIndex + 1;
-                    currentEvent = nextEvent;
-                }
+            if (!eventManager.nextEvent(timer)) {
+                playRecording = false;
             }
         }
 
@@ -100,24 +144,24 @@ struct KeyboardController : Controller {
     {
         PhysicalProperties *phys = &(agent->phys);
 
-        for (auto cmd : currentEvent->commands) {
-            if(cmd == COMMAND::WALK_LEFT) {
+        for (auto cmd : eventManager.currentEvent->commands) {
+            if(cmd == command_e::WALK_LEFT) {
                 agent->currentDir = Agent::direction::LEFT;
                 phys->targetSpeed.x = -phys->terminalVelocity;
             }
 
-            if (cmd == COMMAND::WALK_RIGHT) {
+            if (cmd == command_e::WALK_RIGHT) {
                 agent->currentDir = Agent::direction::RIGHT;
                 phys->targetSpeed.x = phys->terminalVelocity;
             }
 
-            if (cmd == COMMAND::JUMP) {
+            if (cmd == command_e::JUMP) {
                 phys->targetSpeed.y = -350.0f;
                 phys->jumpAcceleration = 1000.0f;
                 phys->isOnGround = false;
             }
             
-            if (cmd == COMMAND::STOP) {
+            if (cmd == command_e::STOP) {
                 agent->animatedSprite->stop();
                 phys->targetSpeed = sf::Vector2f(0.0f, 0.0f);
             }
@@ -165,11 +209,7 @@ struct KeyboardController : Controller {
     }
 
     bool playRecording;
-    int currentEventIndex;
-    Event *currentEvent;
-    COMMAND lastCommand;
-    std::vector<Event> events;
-
+    EventManager eventManager;
     sf::Time timer;
 };
 
