@@ -101,7 +101,10 @@ int main()
 
     sf::Time fpsTimer;
     bool timerInitialRun = true;
+
     sf::Clock frameClock;
+    float accumulator = 0.0f;
+    float dt = 0.01f;
 
     while (window.isOpen())
     {
@@ -117,7 +120,16 @@ int main()
         }
 
         sf::Time frameTime = frameClock.restart();
-		agent.update(frameTime);
+
+        if (frameTime > sf::seconds(0.25f))
+            frameTime = sf::seconds(0.25f);
+
+        accumulator += frameTime.asSeconds();
+
+        while (accumulator >= dt) {
+            agent.update(sf::seconds(dt));
+            accumulator -= dt;
+        }
 
         window.clear();
         window.draw(mapLayerBackground);
