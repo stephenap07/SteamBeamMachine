@@ -67,7 +67,7 @@ public:
                 currentEvent = nextEvent;
             }
         }
-        if (m_currentEventIndex == (static_cast<int>(events.size()) - 1)) {
+        if (m_currentEventIndex == static_cast<int>(events.size()) - 1) {
             return false;
         } else {
             return true;
@@ -80,6 +80,7 @@ private:
     int m_currentEventIndex;
     command_e m_lastCommand;
 };
+
 
 struct KeyboardController : Controller {
 
@@ -167,8 +168,6 @@ struct KeyboardController : Controller {
             }
         }
 
-        sf::Vector2f currentPosition = agent->animatedSprite->getPosition();
-
         if (std::fabs(phys->currentSpeed.x) < 0.0f)
             phys->currentSpeed.x = 0;
         if (std::fabs(phys->currentSpeed.y) < 0.0f)
@@ -198,14 +197,6 @@ struct KeyboardController : Controller {
             phys->currentSpeed.y = phys->targetSpeed.y;
 
         agent->animatedSprite->move(phys->currentSpeed * timeDelta.asSeconds());
-        currentPosition = agent->animatedSprite->getPosition();
-
-        if (currentPosition.y > (16 * 16)-(4 * 16)) {
-            agent->animatedSprite->setPosition(currentPosition.x, (16 * 16)-(4 * 16));
-            phys->isOnGround = true;
-        } else {
-            phys->isOnGround = false;
-        }
     }
 
     bool playRecording;
