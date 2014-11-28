@@ -9,6 +9,12 @@ struct CollisionManager : public Controller {
     int tileSize;
     int mapWidth;
     int mapHeight;
+    int mapX;
+    int mapY;
+
+    CollisionManager() :mapX(0), mapY(0)
+    {
+    }
 
     bool collisionHorzDown(int x, int y, int width, int & tileY)
     {
@@ -66,38 +72,61 @@ struct CollisionManager : public Controller {
 
     virtual void update(sf::Time timeDelta, Agent *agent)
     {
-        float x = agent->animatedSprite->getPosition().x;
-        float y = agent->animatedSprite->getPosition().y;
-        int tileCoord;
+        //agent->phys.isOnGround = false;
+        agent->phys.isOnGround = false;
+        for (int y = 0; y < mapHeight; y++) {
+            for (int x = 0; x < mapWidth; x++) {
+                if (!isNotPassable(x, y))
+                    continue;
 
-        int width = 15;
-        int height = 20;
+                sf::FloatRect tileRect(x*tileSize, y*tileSize, tileSize, tileSize);
+                sf::FloatRect agentRect = agent->animatedSprite->getGlobalBounds();
 
-        if (agent->phys.currentSpeed.x > 0.0f) {
-            if (collisionVer(x + width, y, height, tileCoord)) {
-                agent->animatedSprite->setPosition(sf::Vector2f(tileCoord*tileSize - width, y));
-            }
-        } else if (agent->phys.currentSpeed.x < 0.0f) {
-            if (collisionVer(x, y, height, tileCoord)) {
-                agent->animatedSprite->setPosition( sf::Vector2f((tileCoord + 1)*tileSize, y));
+                const float halfTileWidth = tileRect.width / 2.0f;
+                const float halfAgentWidth = agentRect.width / 2.0f;
+                const float halfTileHeight = tileRect.height / 2.0f;
+                const float halfAgentHeight = agentRect.height / 2.0f;
+                float distanceX = std::fabs(agent->animatedSprite->getPosition().x - tileRect.left);
+                float distanceY = std::fabs(agent->animatedSprite->getPosition().y - tileRect.top);
+
+                const bool movedLeft = agent->phys.currentSpeed.x < 0.0f;
+                const bool movedRight = agent->phys.currentSpeed.x > 0.0f;
+                const bool movedUp = agent->phys.currentSpeed.y < 0.0f;
+                const bool movedDown = agent->phys.currentSpeed.y > 0.0f;
+
+                if (agent->animatedSprite->getGlobalBounds().intersects(tileRect)) {
+                    if (movedLeft || movedRight) {
+                        if (!((movedUp || movedDown) && distanceY > distanceX)) {
+                            if (agent->animatedSprite->getPosition().x >= tileRect.left) {
+                                agent->animatedSprite->setPosition(tileRect.left + halfTileWidth + halfAgentWidth, agent->animatedSprite->getPosition().y);
+                            }
+                            else {
+                                agent->animatedSprite->setPosition(tileRect.left - halfTileWidth - halfAgentWidth, agent->animatedSprite->getPosition().y);
+                            }
+                        }
+                    }
+                }
+
+                if (agent->animatedSprite->getGlobalBounds().intersects(tileRect)) {
+                    if (movedUp || movedDown) {
+                        if (!((movedLeft || movedRight) && distanceX > distanceY)) {
+                            if (agent->animatedSprite->getPosition().y >= tileRect.top) {
+                                agent->animatedSprite->setPosition(agent->animatedSprite->getPosition().x, tileRect.top + halfTileHeight + halfAgentHeight);
+                            } else {
+                                agent->animatedSprite->setPosition(agent->animatedSprite->getPosition().x, tileRect.top - halfTileHeight - halfAgentHeight);
+                                agent->phys.isOnGround = true;
+                                agent->phys.currentSpeed.y = 0.0f;
+                            }
+                        }
+                    }
+                }
             }
         }
+    }
 
-        x = agent->animatedSprite->getPosition().x;
-        y = agent->animatedSprite->getPosition().y;
-
-        if (agent->phys.currentSpeed.y < 0) {
-            if (collisionHorzUp(x, y, width, tileCoord)) {
-                agent->animatedSprite->setPosition(sf::Vector2f(x, (tileCoord + 1) * tileSize));
-                agent->phys.currentSpeed.y = 0.0f;
-            }
-        } else {
-            if (collisionHorzDown(x, y + height, width, tileCoord)) { //on the ground
-                agent->animatedSprite->setPosition(sf::Vector2f(x, tileCoord * tileSize - height));
-                agent->phys.currentSpeed.y = 0;
-                agent->phys.isOnGround = true;
-            }
-        }
+    bool isPassable(int tileX, int tileY)
+    {
+        return map[tileY*mapWidth + tileX] == 0;
     }
 };
 

@@ -157,7 +157,7 @@ struct KeyboardController : Controller {
             }
 
             if (cmd == command_e::JUMP) {
-                phys->targetSpeed.y = -350.0f;
+                phys->targetSpeed.y = -450.0f;
                 phys->jumpAcceleration = 1000.0f;
                 phys->isOnGround = false;
             }
@@ -250,6 +250,8 @@ Steamy::Steamy()
 
 void Steamy::update(sf::Time timeDelta)
 {
+    animatedSprite->play(animations[animIndex]);
+
     for (auto controller : controllers) {
         controller->update(timeDelta, this);
     }
@@ -260,6 +262,5 @@ void Steamy::update(sf::Time timeDelta)
         animIndex = anim_type::WALK_RIGHT;
     }
 
-    animatedSprite->play(animations[animIndex]);
     animatedSprite->update(timeDelta);
 }
