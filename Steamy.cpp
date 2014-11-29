@@ -45,7 +45,7 @@ struct KeyboardController : Controller {
                 agent->eventManager.pushCommand(event, command_e::WALK_RIGHT);
             }
 
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z) && phys->isOnGround) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z) /*&& phys->isOnGround*/) {
                 noKeyWasPressed = false;
                 agent->eventManager.pushCommand(event, command_e::JUMP);
             }
@@ -111,6 +111,8 @@ Steamy::Steamy()
     phys.jumpAcceleration = 0.0f;
     phys.landAcceleration = 50.0f;
     phys.skyAcceleration = 20.0f;
+
+    animatedSprite->play(animations[animIndex]);
 }
 
 void Steamy::fixedUpdate(sf::Time timeDelta)

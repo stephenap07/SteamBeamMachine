@@ -18,11 +18,13 @@ struct CollisionManager : public Controller {
 
     b2Vec2 gravity;
     std::unique_ptr<b2World> world;
+    b2Body *agentBody;
     std::vector<b2BodyDef> bodyDefs;
 
     CollisionManager();
     virtual void update(sf::Time timeDelta, Agent *agent);
     void initPhysics();
+    void initPhysics(Agent *agent);
     void draw();
     bool isPassable(int tileX, int tileY);
 };
