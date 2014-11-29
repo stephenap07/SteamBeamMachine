@@ -6,6 +6,7 @@
 struct Steamy : public Agent {
 	Steamy();
 	virtual void update(sf::Time timeDelta);
+    virtual void fixedUpdate(sf::Time deltaTime);
 
 	enum anim_type {
 		WALK_RIGHT = 0,

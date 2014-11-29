@@ -8,6 +8,7 @@
 #include "AnimatedSprite.hpp"
 #include "Steamy.hpp"
 #include "CollisionController.hpp"
+#include "SFMLDebugDraw.h"
 
 
 enum class CollisionType {
@@ -85,6 +86,11 @@ int main()
     collisionController->mapWidth = 32;
     collisionController->mapHeight = 16;
 
+    /* Initialize SFML Debug Draw */
+    SFMLDebugDraw debugDraw(window);
+    collisionController->world->SetDebugDraw(&debugDraw);
+    debugDraw.SetFlags(b2Draw::e_shapeBit);
+
     agent.controllers.push_back(collisionController);
 
 	// Initialize debug text
@@ -127,7 +133,7 @@ int main()
         accumulator += frameTime.asSeconds();
 
         while (accumulator >= dt) {
-            agent.update(sf::seconds(dt));
+            agent.fixedUpdate(sf::seconds(dt));
             accumulator -= dt;
         }
 
@@ -135,6 +141,7 @@ int main()
         window.draw(mapLayerBackground);
         window.draw(mapLayerGround);
         window.draw(*agent.animatedSprite);
+        collisionController->draw();
 
         // Display FPS
         fpsTimer = fpsTimer + frameTime;
