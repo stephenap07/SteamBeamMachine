@@ -44,7 +44,6 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent)
         if (cmd == command_e::RESTART) {
             agentBody->SetTransform(b2Vec2(rect.width/2.0f/sfdd::SCALE, rect.height/2.0f/sfdd::SCALE), 0);
             agentBody->SetLinearVelocity(b2Vec2(0,0));
-            agentBody->SetAngularVelocity(0);
             agentBody->SetAwake(true);
         }
     }

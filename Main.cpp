@@ -133,11 +133,11 @@ int main()
 
         accumulator += frameTime.asSeconds();
 
+        agent.update(sf::seconds(dt));
         while (accumulator >= dt) {
             agent.fixedUpdate(sf::seconds(dt));
             accumulator -= dt;
         }
-        agent.update(sf::seconds(dt));
 
         window.clear();
         window.draw(mapLayerBackground);
