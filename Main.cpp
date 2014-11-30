@@ -66,22 +66,50 @@ int main()
         1,   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1
     };
 
+    const int objects_layer[] = {
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
+    };
+
+
     // create the tilemap from the level definition
     TileMap mapLayerGround;
     TileMap mapLayerBackground;
+    TileMap mapLayerObjects;
 
 	const auto tilePath = "tiles.png";
 	if (!mapLayerGround.load(tilePath, sf::Vector2u(16, 16), ground_layer, 32, 16))
         return -1;
     if (!mapLayerBackground.load(tilePath, sf::Vector2u(16, 16), sky_layer, 32, 16))
         return -1;
+    if (!mapLayerObjects.load(tilePath, sf::Vector2u(16, 16), objects_layer, 32, 16))
+        return -1;
 
 	Steamy agent;
 
     auto collisionController = std::shared_ptr<CollisionManager>(new CollisionManager);
     int dest[32*16];
+    int objDest[32*16];
     std::copy(std::begin(ground_layer), std::end(ground_layer), std::begin(dest));
+    std::copy(std::begin(objects_layer), std::end(objects_layer), std::begin(objDest));
+
     collisionController->map = dest;
+    collisionController->objMap = &mapLayerObjects;
+    collisionController->tileObjArr = objDest;
     collisionController->tileSize = 16;
     collisionController->mapWidth = 32;
     collisionController->mapHeight = 16;
@@ -97,6 +125,7 @@ int main()
 	// Initialize debug text
     std::stringstream sstream;
 	sf::Text fpsCounter;
+    sf::Text scoreCounter;
 	sf::Font mainFont;
 	if(!mainFont.loadFromFile("monotype.ttf")) {
         exit(1);
@@ -105,6 +134,11 @@ int main()
 	fpsCounter.setFont(mainFont);
 	fpsCounter.setColor(sf::Color::Black);
     fpsCounter.setCharacterSize(16);
+
+	scoreCounter.setFont(mainFont);
+	scoreCounter.setColor(sf::Color::Black);
+    scoreCounter.setCharacterSize(16);
+    scoreCounter.setPosition(0, 20);
 
     sf::Time fpsTimer;
     bool timerInitialRun = true;
@@ -142,6 +176,7 @@ int main()
         window.clear();
         window.draw(mapLayerBackground);
         window.draw(mapLayerGround);
+        window.draw(mapLayerObjects);
         window.draw(*agent.animatedSprite);
         collisionController->draw();
 
@@ -155,7 +190,14 @@ int main()
             fpsTimer = sf::seconds(0);
             timerInitialRun = false;
 		}
+
+        sstream.precision(0);
+        sstream  << std::fixed << "Score: " << collisionController->getPoints();
+        scoreCounter.setString(sstream.str());
+        sstream.str("");
+
         window.draw(fpsCounter);
+        window.draw(scoreCounter);
 
         window.display();
     }
