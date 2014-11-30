@@ -1,6 +1,5 @@
 #include <iostream>
 #include "CollisionController.hpp"
-#include "SFMLDebugDraw.h"
 
 template<typename T >
 b2Vec2 sfVecToB2Vec(sf::Vector2<T> vector)
@@ -9,11 +8,11 @@ b2Vec2 sfVecToB2Vec(sf::Vector2<T> vector)
 }
 
 CollisionManager::CollisionManager() 
-    :isFixedTimeStep(false), mapX(0), mapY(0)
+    :isFixedTimeStep(false), mapX(0), mapY(0), points(0)
 {
     gravity.Set(0.0f, 20.0f);
     world = std::unique_ptr<b2World>(new b2World(gravity));
-    world->SetContactListener(&footListener);
+    world->SetContactListener(&listener);
 }
 
 void CollisionManager::update(sf::Time timeDelta, Agent *agent)
@@ -59,9 +58,19 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent)
     // Set the position of our agent
     b2Vec2 bodyPos = agentBody->GetPosition();
     agent->animatedSprite->setPosition(bodyPos.x * sfdd::SCALE - rect.width/2.0f, bodyPos.y * sfdd::SCALE - rect.height/2.0f);
-    agent->phys.isOnGround = footListener.isOnGround();
+    agent->phys.isOnGround = listener.isOnGround();
+
+    for (auto body: bodiesToDelete) {
+        world->DestroyBody(body);
+        points++;
+    }
+    bodiesToDelete.clear();
 } 
 
+
+/**
+ * Create box2d bodies and insert into world
+ */
 void CollisionManager::initPhysics(Agent *agent)
 {
     std::vector<bool> tilesVisited(mapWidth*mapHeight, false);
@@ -131,6 +140,7 @@ void CollisionManager::initPhysics(Agent *agent)
                          b2Vec2(bounds.width / 2.0f /
                            sfdd::SCALE - bounds.width / 8.0f / sfdd::SCALE, 0),
                          0);
+
     b2FixtureDef rightSideDef;
     rightSideDef.shape = &rightSideBox;
     rightSideDef.density = 1.0f;
@@ -142,6 +152,7 @@ void CollisionManager::initPhysics(Agent *agent)
                          bounds.height / 2.0f /  sfdd::SCALE,
                          b2Vec2(-bounds.width / 2.0f / sfdd::SCALE, 0),
                          0);
+
     b2FixtureDef leftSideDef;
     leftSideDef.shape = &leftSideBox;
     leftSideDef.density = 1.0f;
@@ -159,7 +170,39 @@ void CollisionManager::initPhysics(Agent *agent)
     polygonShape.SetAsBox(bounds.width / 4.0f / sfdd::SCALE, bounds.height / 8.0f /  sfdd::SCALE, b2Vec2(0, bounds.height / 2.0f /  sfdd::SCALE), 0);
     myFixtureDef.isSensor = true;
     b2Fixture* footSensorFixture = agentBody->CreateFixture(&myFixtureDef);
-    footSensorFixture->SetUserData( (void*)3 );
+    footSensorFixture->SetUserData( (void*)collisionType_e::FOOT );
+
+    // add sensors for coins
+
+    b2PolygonShape coinBox;
+    coinBox.SetAsBox(tileSize / 3.0f / sfdd::SCALE, tileSize / 3.0f / sfdd::SCALE);
+
+    for (int y = 0; y < mapHeight; y++) {
+        for (int x = 0; x < mapWidth; x++) {
+            if (tileObjArr[y*mapWidth + x] == collisionType_e::COIN) {
+                b2BodyDef coinDef;
+                b2Body *coinBody;
+                coinDef.type = b2_staticBody;
+                coinDef.position.Set((x * tileSize + tileSize / 2.0f) / sfdd::SCALE, (y * tileSize + tileSize / 2.0f) / sfdd::SCALE);
+                coinBody = world->CreateBody(&coinDef);
+
+                b2FixtureDef coinFixtureDef;
+                coinFixtureDef.shape = &coinBox;
+                coinFixtureDef.density = 1;
+
+                coinFixtureDef.isSensor = true;
+                b2Fixture* coinSensorFixture = coinBody->CreateFixture(&coinFixtureDef);
+                coinSensorFixture->SetUserData( (void*)collisionType_e::COIN );
+
+                listener.tileArr = tileObjArr;
+                listener.tileMap = objMap;
+                listener.tileSize = tileSize;
+                listener.mapWidth = mapWidth;
+                listener.mapHeight = mapHeight;
+                listener.controller = this;
+            }
+        }
+    }
 }
 
 void CollisionManager::draw()
@@ -170,4 +213,14 @@ void CollisionManager::draw()
 bool CollisionManager::isPassable(int tileX, int tileY)
 {
     return map[tileY*mapWidth + tileX] == 0;
+}
+
+void CollisionManager::scheduleDelete(b2Body *body)
+{
+    bodiesToDelete.insert(body);
+}
+
+int CollisionManager::getPoints() const
+{
+    return points;
 }

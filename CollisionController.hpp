@@ -3,37 +3,62 @@
 
 #include <memory>
 #include <vector>
+#include <set>
 #include <cstdint>
+#include <cmath>
 #include <inttypes.h>
 #include <Box2D/Box2D.h>
 #include "Controller.hpp"
+#include "TileMap.hpp"
+#include "SFMLDebugDraw.h"
 
 
 struct CollisionManager : public Controller {
+    enum collisionType_e {
+        COIN = 3,
+        FOOT
+    };
+
     struct FootContactListener : public b2ContactListener
     {
         FootContactListener() :numFootContacts(0) {}
 
         void BeginContact(b2Contact* contact) {
             //check if fixture A was the foot sensor
-            int *fixtureUserData = reinterpret_cast<int*>(contact->GetFixtureA()->GetUserData());
-            if ( fixtureUserData == (int*)3 )
-                numFootContacts++;
-            //check if fixture B was the foot sensor
-            fixtureUserData = reinterpret_cast<int*>(contact->GetFixtureB()->GetUserData());
-            if ( fixtureUserData == (int*)3 )
-                numFootContacts++;
+            int dataA = (int)reinterpret_cast<int*>(contact->GetFixtureA()->GetUserData());
+            int dataB = (int)reinterpret_cast<int*>(contact->GetFixtureB()->GetUserData());
+
+            if (dataA != collisionType_e::COIN && dataB != collisionType_e::COIN) {
+                if (dataA == collisionType_e::FOOT || dataB == collisionType_e::FOOT) {
+                    numFootContacts++;
+                }
+            } else {
+                b2Body *body;
+                if (dataA == collisionType_e::COIN) {
+                    body = contact->GetFixtureA()->GetBody();
+                } else {
+                    body = contact->GetFixtureB()->GetBody();
+                }
+
+                b2Vec2 position = body->GetPosition();
+                int tileX = (position.x * sfdd::SCALE) / tileSize;
+                int tileY = (position.y * sfdd::SCALE) / tileSize;
+                tileArr[tileY*mapWidth + tileX] = 0;
+                tileMap->initTiles(sf::Vector2u(tileSize, tileSize), tileArr, mapWidth, mapHeight);
+                controller->scheduleDelete(body);
+            }
         }
 
         void EndContact(b2Contact* contact) {
-            //check if fixture A was the foot sensor
-            int *fixtureUserData = reinterpret_cast<int*>(contact->GetFixtureA()->GetUserData());
-            if ( fixtureUserData == (int*)3 )
-                numFootContacts--;
-            //check if fixture B was the foot sensor
-            fixtureUserData = reinterpret_cast<int*>(contact->GetFixtureB()->GetUserData());
-            if ( fixtureUserData == (int*)3 )
-                numFootContacts--;
+            int dataA = (int)reinterpret_cast<int*>(contact->GetFixtureA()->GetUserData());
+            int dataB = (int)reinterpret_cast<int*>(contact->GetFixtureB()->GetUserData());
+
+            if (dataA != collisionType_e::COIN && dataB != collisionType_e::COIN) {
+                if (dataA == collisionType_e::FOOT || dataB == collisionType_e::FOOT) {
+                    numFootContacts--;
+                }
+            } else {
+            }
         }
 
         bool isOnGround() {
@@ -41,21 +66,31 @@ struct CollisionManager : public Controller {
         }
 
         int numFootContacts;
+        int *tileArr;
+        TileMap *tileMap;
+        int tileSize;
+        int mapWidth;
+        int mapHeight;
+        CollisionManager *controller;
     };
 
     bool isFixedTimeStep;
     int *map;
+    TileMap *objMap;
+    int *tileObjArr;
     int tileSize;
     int mapWidth;
     int mapHeight;
     int mapX;
     int mapY;
-    FootContactListener footListener;
+    int points;
+    FootContactListener listener;
 
     b2Vec2 gravity;
     std::unique_ptr<b2World> world;
     b2Body *agentBody;
     std::vector<b2BodyDef> bodyDefs;
+    std::set<b2Body*> bodiesToDelete;
 
     CollisionManager();
     virtual void update(sf::Time timeDelta, Agent *agent);
@@ -63,6 +98,8 @@ struct CollisionManager : public Controller {
     void initPhysics(Agent *agent);
     void draw();
     bool isPassable(int tileX, int tileY);
+    void scheduleDelete(b2Body *body);
+    int getPoints() const;
 };
 
 
