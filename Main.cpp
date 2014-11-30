@@ -120,7 +120,7 @@ int main()
     collisionController->world->SetDebugDraw(&debugDraw);
     debugDraw.SetFlags(b2Draw::e_shapeBit);
 
-    agent.controllers.push_back(collisionController);
+    agent.collisionController = collisionController;
 
 	// Initialize debug text
     std::stringstream sstream;

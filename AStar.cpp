@@ -4,7 +4,6 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <cstdlib>
 #include <cmath>
 #include <queue>
 #include <algorithm>
@@ -130,7 +129,7 @@ void CalculateEdges(std::vector<Polygon> &polygons, std::vector<Edge> &edges)
 {
      for (Polygon &p : polygons) {
         // Assuming that a polygon has at least 3 vertices
-        for (unsigned i = 1; i < p.nodes.size(); i++) {
+        for (size_t i = 1; i < p.nodes.size(); i++) {
             Node *p1 = &p.nodes[i - 1];
             Node *p2 = &p.nodes[i];
             edges.push_back(Edge{p1, p2});
@@ -180,11 +179,6 @@ void Heuristic(Map &map)
     }
 }
 
-void A_Star(Node *start, Node *goal)
-{
-    
-}
-
 Node *NextNode(std::list<Node*> &node_list)
 {
     Node *lowest;
@@ -202,36 +196,17 @@ Node *NextNode(std::list<Node*> &node_list)
     return lowest;
 }
 
-int DoSolve(int argc, char**argv)
+void A_Star(Node *start, Node *goal)
 {
-    Map map;
-    if (argc < 2) {
-        std::cerr << "Missing map file\n";
-        exit(1);
-    } else {
-        map = ReadFile(argv[1]);
-        if (map.polygons.empty() && map.polygons.size() >= 2) {
-            std::cerr << "Error reading file\n";
-            exit(1);
-        }
-    }
-
     typedef std::list<Node*>::iterator node_iter;
-
-    for (Node *n : map.nodes) {
-        n->parent = nullptr;
-    }
-
-    std::cout << "Shortest path from (" << g_start.x << ", " << g_start.y << ") to (" << g_goal.x << ", " << g_goal.y << ")" << std::endl;
-
     std::list<Node*> open_set;
     std::list<Node*> closed_set;
 
-    open_set.push_back(&g_start);
+    open_set.push_back(start);
     while (!open_set.empty()) {
         Node *current = NextNode(open_set);
         open_set.remove(current);
-        if (*current == g_goal) {
+        if (*current == *goal) {
             break;
         }
         for (Node *neighbor : current->neighbors) {
@@ -255,18 +230,39 @@ int DoSolve(int argc, char**argv)
         closed_set.push_back(current); 
     }
 
-    Node *p = g_goal.parent;
+    Node *p = goal->parent;
     std::vector<Node> solution;
     while (p) {
         solution.push_back(*p);
         p = p->parent;
     }
 
-    for(std::vector<Node>::reverse_iterator it = solution.rbegin(); it != solution.rend(); ++it)
-    {
+    for(std::vector<Node>::reverse_iterator it = solution.rbegin(); it != solution.rend(); ++it) {
         std::cout << "(" << it->x << ", " << it->y << ") ";
     }
     std::cout << std::endl;
+}
+
+
+int doSolve(int argc, char**argv)
+{
+    Map map;
+    if (argc < 2) {
+        std::cerr << "Missing map file\n";
+        exit(1);
+    } else {
+        map = ReadFile(argv[1]);
+        if (map.polygons.empty() && map.polygons.size() >= 2) {
+            std::cerr << "Error reading file\n";
+            exit(1);
+        }
+    }
+
+    for (Node *n : map.nodes) {
+        n->parent = nullptr;
+    }
+
+    A_Star(&g_start, &g_goal);
 
     return 0;
 }
