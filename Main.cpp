@@ -98,7 +98,7 @@ int main()
     std::stringstream sstream;
 	sf::Text fpsCounter;
 	sf::Font mainFont;
-	if(!mainFont.loadFromFile("SPFont.ttf")) {
+	if(!mainFont.loadFromFile("monotype.ttf")) {
         exit(1);
     }
 
@@ -133,11 +133,11 @@ int main()
 
         accumulator += frameTime.asSeconds();
 
-        agent.update(sf::seconds(dt));
         while (accumulator >= dt) {
             agent.fixedUpdate(sf::seconds(dt));
             accumulator -= dt;
         }
+        agent.update(sf::seconds(dt));
 
         window.clear();
         window.draw(mapLayerBackground);
