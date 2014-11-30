@@ -103,8 +103,7 @@ Steamy::Steamy()
     animatedSprite = std::unique_ptr<AnimatedSprite>(new AnimatedSprite(sf::seconds(0.13f), true, false));
     animatedSprite->setPosition(sf::Vector2f(0, 0));
 
-    auto controller = std::shared_ptr<Controller>(new KeyboardController);
-    controllers.push_back(controller);
+    inputController = std::shared_ptr<Controller>(new KeyboardController);
 
     phys.isOnGround = false;
     phys.terminalVelocity = 120.0f;
@@ -119,10 +118,7 @@ void Steamy::fixedUpdate(sf::Time timeDelta)
 {
     animatedSprite->play(animations[animIndex]);
 
-    for (auto controller : controllers) {
-        if (controller->isFixedTimeStep)
-            controller->update(timeDelta, this);
-    }
+    collisionController->update(timeDelta, this);
 
     for (auto cmd : eventManager.currentEvent->commands) {
         if(cmd == command_e::RESTART) {
@@ -145,8 +141,5 @@ void Steamy::fixedUpdate(sf::Time timeDelta)
 
 void Steamy::update(sf::Time timeDelta)
 {
-    for (auto controller : controllers) {
-        if (!controller->isFixedTimeStep)
-            controller->update(timeDelta, this);
-    }
+    inputController->update(timeDelta, this);
 }

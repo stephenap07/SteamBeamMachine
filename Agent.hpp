@@ -112,7 +112,8 @@ struct Agent {
 	int animIndex;
     direction currentDir;
 	std::unique_ptr<AnimatedSprite> animatedSprite;
-    std::vector<std::shared_ptr<Controller>> controllers;
+    std::shared_ptr<Controller> collisionController;
+    std::shared_ptr<Controller> inputController;
     PhysicalProperties phys;
     EventManager eventManager;
 };
