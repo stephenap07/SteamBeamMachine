@@ -23,7 +23,8 @@ enum class command_e {
     WALK_RIGHT,
     WALK_LEFT,
     JUMP,
-    STOP
+    STOP,
+    RESTART
 };
 
 

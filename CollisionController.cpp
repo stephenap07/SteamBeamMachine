@@ -11,37 +11,47 @@ b2Vec2 sfVecToB2Vec(sf::Vector2<T> vector)
 CollisionManager::CollisionManager() 
     :isFixedTimeStep(false), mapX(0), mapY(0)
 {
-    gravity.Set(0.0f, 10.0f);
+    gravity.Set(0.0f, 20.0f);
     world = std::unique_ptr<b2World>(new b2World(gravity));
+    world->SetContactListener(&footListener);
 }
 
 void CollisionManager::update(sf::Time timeDelta, Agent *agent)
 {
+    sf::FloatRect rect = agent->animatedSprite->getLocalBounds();
+    b2Vec2 vel = agentBody->GetLinearVelocity();
+    float desiredVel = 0;
+
     for (auto cmd : agent->eventManager.currentEvent->commands) {
         if(cmd == command_e::WALK_LEFT) {
             agent->currentDir = Agent::direction::LEFT;
-            agentBody->ApplyForce(b2Vec2(-5, 0), agentBody->GetWorldCenter(), true);
-            //phys->targetSpeed.x = -phys->terminalVelocity;
+            desiredVel = -3.0f;
         }
 
         if (cmd == command_e::WALK_RIGHT) {
             agent->currentDir = Agent::direction::RIGHT;
-            agentBody->ApplyForce(b2Vec2(5, 0), agentBody->GetWorldCenter(), true);
-            //phys->targetSpeed.x = phys->terminalVelocity;
-        }
-
-        if (cmd == command_e::JUMP) {
-            //phys->targetSpeed.y = -450.0f;
-            //phys->jumpAcceleration = 1000.0f;
-            //phys->isOnGround = false;
-            agentBody->ApplyForce(b2Vec2(0, -11), agentBody->GetWorldCenter(), true);
+            desiredVel = b2Max(vel.x - 0.1f, 3.0f );
         }
 
         if (cmd == command_e::STOP) {
-            agent->animatedSprite->stop();
-            //phys->targetSpeed = sf::Vector2f(0.0f, 0.0f);
+            desiredVel = vel.x * 0.8f;
+        }
+ 
+        if (cmd == command_e::JUMP && agent->phys.isOnGround) {
+            agentBody->ApplyForce(b2Vec2(0, -80.0f), agentBody->GetWorldCenter(), true);
+        }
+
+        if (cmd == command_e::RESTART) {
+            agentBody->SetTransform(b2Vec2(rect.width/2.0f/sfdd::SCALE, rect.height/2.0f/sfdd::SCALE), 0);
+            agentBody->SetLinearVelocity(b2Vec2(0,0));
+            agentBody->SetAngularVelocity(0);
+            agentBody->SetAwake(true);
         }
     }
+
+    float velChange = desiredVel - vel.x;
+    float impulse = agentBody->GetMass() * velChange;
+    agentBody->ApplyLinearImpulse(b2Vec2(impulse, 0), agentBody->GetWorldCenter(), true);
 
     const int velocityIterations = 6;
     const int positionIterations = 2;
@@ -49,8 +59,8 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent)
 
     // Set the position of our agent
     b2Vec2 bodyPos = agentBody->GetPosition();
-    sf::FloatRect rect = agent->animatedSprite->getLocalBounds();
     agent->animatedSprite->setPosition(bodyPos.x * sfdd::SCALE - rect.width/2.0f, bodyPos.y * sfdd::SCALE - rect.height/2.0f);
+    agent->phys.isOnGround = footListener.isOnGround();
 } 
 
 void CollisionManager::initPhysics(Agent *agent)
@@ -100,17 +110,57 @@ void CollisionManager::initPhysics(Agent *agent)
 
     // Create agent body
     sf::FloatRect bounds = agent->animatedSprite->getGlobalBounds();
+
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set((bounds.left + bounds.width / 2.0f) / sfdd::SCALE, (bounds.top + bounds.height / 2.0f) / sfdd::SCALE);
+    bodyDef.fixedRotation = true;
     agentBody = world->CreateBody(&bodyDef);
+
     b2PolygonShape dynamicBox;
     dynamicBox.SetAsBox(bounds.width / 2.0f / sfdd::SCALE, bounds.height / 2.0f /  sfdd::SCALE);
+
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &dynamicBox;
     fixtureDef.density = 1.0f;
     fixtureDef.friction = 0.3f;
     agentBody->CreateFixture(&fixtureDef);
+
+    b2PolygonShape rightSideBox;
+    rightSideBox.SetAsBox(bounds.width / 8.0f / sfdd::SCALE,
+                         bounds.height / 2.0f /  sfdd::SCALE,
+                         b2Vec2(bounds.width / 2.0f /
+                           sfdd::SCALE - bounds.width / 8.0f / sfdd::SCALE, 0),
+                         0);
+    b2FixtureDef rightSideDef;
+    rightSideDef.shape = &rightSideBox;
+    rightSideDef.density = 1.0f;
+    rightSideDef.friction = 0.0f;
+    agentBody->CreateFixture(&rightSideDef);
+
+    b2PolygonShape leftSideBox;
+    leftSideBox.SetAsBox(bounds.width / 8.0f / sfdd::SCALE,
+                         bounds.height / 2.0f /  sfdd::SCALE,
+                         b2Vec2(-bounds.width / 2.0f / sfdd::SCALE, 0),
+                         0);
+    b2FixtureDef leftSideDef;
+    leftSideDef.shape = &leftSideBox;
+    leftSideDef.density = 1.0f;
+    leftSideDef.friction = 0.0f;
+    agentBody->CreateFixture(&leftSideDef);
+
+    b2PolygonShape polygonShape;
+
+    // fixture definition
+    b2FixtureDef myFixtureDef;
+    myFixtureDef.shape = &polygonShape;
+    myFixtureDef.density = 1;
+
+    // add foot sensor fixture
+    polygonShape.SetAsBox(bounds.width / 4.0f / sfdd::SCALE, bounds.height / 8.0f /  sfdd::SCALE, b2Vec2(0, bounds.height / 2.0f /  sfdd::SCALE), 0);
+    myFixtureDef.isSensor = true;
+    b2Fixture* footSensorFixture = agentBody->CreateFixture(&myFixtureDef);
+    footSensorFixture->SetUserData( (void*)3 );
 }
 
 void CollisionManager::draw()

@@ -26,13 +26,6 @@ struct KeyboardController : Controller {
             timer
         };
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-            playRecording = true;
-            timer = sf::seconds(0);
-            agent->eventManager.startReplay();
-            agent->animatedSprite->setPosition(0, 0);
-        }
-
         if (!playRecording) {
             bool noKeyWasPressed = true;
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
@@ -48,6 +41,13 @@ struct KeyboardController : Controller {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z) /*&& phys->isOnGround*/) {
                 noKeyWasPressed = false;
                 agent->eventManager.pushCommand(event, command_e::JUMP);
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+                playRecording = true;
+                timer = sf::seconds(0);
+                agent->animatedSprite->setPosition(0, 0);
+                agent->eventManager.pushCommand(event, command_e::RESTART);
             }
 
             if (noKeyWasPressed) {
@@ -122,6 +122,16 @@ void Steamy::fixedUpdate(sf::Time timeDelta)
     for (auto controller : controllers) {
         if (controller->isFixedTimeStep)
             controller->update(timeDelta, this);
+    }
+
+    for (auto cmd : eventManager.currentEvent->commands) {
+        if(cmd == command_e::RESTART) {
+            eventManager.events.pop_back();
+            eventManager.startReplay();
+        }
+        if (cmd == command_e::STOP) {
+            animatedSprite->stop();
+        }
     }
 
     if (currentDir == direction::LEFT) {
