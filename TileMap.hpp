@@ -5,6 +5,7 @@
 
 class TileMap : public sf::Drawable, public sf::Transformable {
 public:
+    TileMap() : m_tiles(nullptr) {}
 
     virtual ~TileMap()
     {

@@ -25,8 +25,8 @@ struct CollisionManager : public Controller {
 
         void BeginContact(b2Contact* contact) {
             //check if fixture A was the foot sensor
-            int dataA = (int)reinterpret_cast<int*>(contact->GetFixtureA()->GetUserData());
-            int dataB = (int)reinterpret_cast<int*>(contact->GetFixtureB()->GetUserData());
+            int dataA = (long)reinterpret_cast<long*>(contact->GetFixtureA()->GetUserData());
+            int dataB = (long)reinterpret_cast<long*>(contact->GetFixtureB()->GetUserData());
 
             if (dataA != collisionType_e::COIN && dataB != collisionType_e::COIN) {
                 if (dataA == collisionType_e::FOOT || dataB == collisionType_e::FOOT) {
@@ -50,8 +50,8 @@ struct CollisionManager : public Controller {
         }
 
         void EndContact(b2Contact* contact) {
-            int dataA = (int)reinterpret_cast<int*>(contact->GetFixtureA()->GetUserData());
-            int dataB = (int)reinterpret_cast<int*>(contact->GetFixtureB()->GetUserData());
+            int dataA = (long)reinterpret_cast<int*>(contact->GetFixtureA()->GetUserData());
+            int dataB = (long)reinterpret_cast<int*>(contact->GetFixtureB()->GetUserData());
 
             if (dataA != collisionType_e::COIN && dataB != collisionType_e::COIN) {
                 if (dataA == collisionType_e::FOOT || dataB == collisionType_e::FOOT) {
