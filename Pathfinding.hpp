@@ -6,9 +6,10 @@
 struct Node {
     int x, y;
     float g, h;
+    Node *parent;
 
-    Node() :x(-1), y(-1), g(0), h(0) {}
-    Node(int _x, int _y) :x(_x), y(_y), g(0), h(0) {}
+    Node() :x(-1), y(-1), g(0), h(0), parent(nullptr) {}
+    Node(int _x, int _y) :x(_x), y(_y), g(0), h(0), parent(nullptr) {}
 
     bool isValid() const { return (x != -1 && y != -1); }
     void set(int _x, int _y) { x = _x; y = _y; }
@@ -39,6 +40,8 @@ private:
 
     std::vector<Node> identifySuccessors(Node current, Node start, Node goal);
     Node jump(int x, int y, int dX, int dY, const Node &start, const Node &goal);
+    Node *nextNode(std::list<Node*> &nodeList);
+    std::vector<Node*> getNeighbors(const Node *node);
 
 private:
     const TileMap *m_tileMap;

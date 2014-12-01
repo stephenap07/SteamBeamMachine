@@ -10,6 +10,7 @@
 #include "Steamy.hpp"
 #include "CollisionController.hpp"
 #include "SFMLDebugDraw.h"
+#include "Pathfinding.hpp"
 
 
 enum class CollisionType {
@@ -151,6 +152,14 @@ int main()
     float dt = 1.0f / 60.0f;
 
     bool renderDebug = false;
+
+    Pathfinder pathFinder(&mapLayerGround);
+    /*
+    std::vector<Node> path = pathFinder.getPath(Node(0, 12), Node(18, 11));
+    for (auto node : path) {
+        //std::cout << "(" << node.x << ", " << node.y << ")" << std::endl;
+    }
+    */
 
     while (window.isOpen())
     {
