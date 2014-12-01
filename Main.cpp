@@ -1,4 +1,5 @@
 #include <iostream>
+#include <list>
 #include <sstream>
 #include <cassert>
 #include <iterator>
@@ -20,6 +21,7 @@ enum class CollisionType {
 };
 
 
+
 int main()
 {
     sf::Vector2i screenDimensions(32 * 16, 16 * 16);
@@ -36,15 +38,15 @@ int main()
          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0, 40, 41, 42,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-         0,  0,  0,  0,  0, 81,  0, 81,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-         0,  0,  0,  0,  0, 81,  0, 81,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-         0,  0,  0,  0,  0, 81, 41, 81,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0, 80, 81, 82,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0, 80, 81, 82,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,120,121,122,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 40, 42,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         41, 41, 41, 41, 41, 41, 41, 41, 41, 42,  0,  0,  0, 40, 41, 41, 41, 41, 81, 81, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-        81, 81, 81, 81, 81, 81, 81, 81, 81, 81,  0,  0,  0, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
-        81, 81, 81, 81, 81, 81, 81, 81, 81, 81,  0,  0,  0, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+        81, 81, 81, 81, 81, 81, 81, 81, 81, 82,  0,  0,  0, 80, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+        81, 81, 81, 81, 81, 81, 81, 81, 81, 82,  0,  0,  0, 80, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
     };
 
     const int sky_layer[] = {
@@ -104,6 +106,7 @@ int main()
     auto collisionController = std::shared_ptr<CollisionManager>(new CollisionManager);
     int dest[32*16];
     int objDest[32*16];
+
     std::copy(std::begin(ground_layer), std::end(ground_layer), std::begin(dest));
     std::copy(std::begin(objects_layer), std::end(objects_layer), std::begin(objDest));
 
@@ -138,7 +141,7 @@ int main()
 	scoreCounter.setFont(mainFont);
 	scoreCounter.setColor(sf::Color::Black);
     scoreCounter.setCharacterSize(16);
-    scoreCounter.setPosition(0, 20);
+    scoreCounter.setPosition(window.getView().getSize().x - 100, 0);
 
     sf::Time fpsTimer;
     bool timerInitialRun = true;
@@ -146,6 +149,8 @@ int main()
     sf::Clock frameClock;
     float accumulator = 0.0f;
     float dt = 1.0f / 60.0f;
+
+    bool renderDebug = false;
 
     while (window.isOpen())
     {
@@ -157,11 +162,14 @@ int main()
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Escape)
                     window.close();
+                if (event.key.code == sf::Keyboard::D)
+                    renderDebug = !renderDebug;
             }
         }
 
         sf::Time frameTime = frameClock.restart();
 
+        // Semi-fixed timestep
         if (frameTime > sf::seconds(0.25f))
             frameTime = sf::seconds(0.25f);
 
@@ -171,6 +179,7 @@ int main()
             agent.fixedUpdate(sf::seconds(dt));
             accumulator -= dt;
         }
+        accumulator = 0.0f;
         agent.update(sf::seconds(dt));
 
         window.clear();
@@ -178,7 +187,8 @@ int main()
         window.draw(mapLayerGround);
         window.draw(mapLayerObjects);
         window.draw(*agent.animatedSprite);
-        collisionController->draw();
+        if (renderDebug)
+            collisionController->draw();
 
         // Display FPS
         fpsTimer = fpsTimer + frameTime;
@@ -196,7 +206,9 @@ int main()
         scoreCounter.setString(sstream.str());
         sstream.str("");
 
-        window.draw(fpsCounter);
+        if (renderDebug)
+            window.draw(fpsCounter);
+
         window.draw(scoreCounter);
 
         window.display();

@@ -10,7 +10,7 @@ b2Vec2 sfVecToB2Vec(sf::Vector2<T> vector)
 CollisionManager::CollisionManager() 
     :isFixedTimeStep(false), mapX(0), mapY(0), points(0)
 {
-    gravity.Set(0.0f, 20.0f);
+    gravity.Set(0.0f, 40.0f);
     world = std::unique_ptr<b2World>(new b2World(gravity));
     world->SetContactListener(&listener);
 }
@@ -24,12 +24,12 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent)
     for (auto cmd : agent->eventManager.currentEvent->commands) {
         if(cmd == command_e::WALK_LEFT) {
             agent->currentDir = Agent::direction::LEFT;
-            desiredVel = -3.0f;
+            desiredVel = -5.0f;
         }
 
         if (cmd == command_e::WALK_RIGHT) {
             agent->currentDir = Agent::direction::RIGHT;
-            desiredVel = b2Max(vel.x - 0.1f, 3.0f );
+            desiredVel = b2Max(vel.x - 0.1f, 5.0f );
         }
 
         if (cmd == command_e::STOP) {
@@ -37,7 +37,7 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent)
         }
  
         if (cmd == command_e::JUMP && agent->phys.isOnGround) {
-            agentBody->ApplyForce(b2Vec2(0, -80.0f), agentBody->GetWorldCenter(), true);
+            agentBody->ApplyForce(-3.0f*world->GetGravity(), agentBody->GetWorldCenter(), true);
         }
 
         if (cmd == command_e::RESTART) {
