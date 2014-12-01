@@ -11,6 +11,8 @@
 #include "Controller.hpp"
 #include "TileMap.hpp"
 #include "SFMLDebugDraw.h"
+#include "Pathfinding.hpp"
+#include "Agent.hpp"
 
 
 struct CollisionManager : public Controller {
@@ -77,6 +79,7 @@ struct CollisionManager : public Controller {
     bool isFixedTimeStep;
     int *map;
     TileMap *objMap;
+    TileMap *tileMap;
     int *tileObjArr;
     int tileSize;
     int mapWidth;
@@ -85,12 +88,16 @@ struct CollisionManager : public Controller {
     int mapY;
     int points;
     FootContactListener listener;
+    Agent *agent;
 
     b2Vec2 gravity;
     std::unique_ptr<b2World> world;
     b2Body *agentBody;
     std::vector<b2BodyDef> bodyDefs;
     std::set<b2Body*> bodiesToDelete;
+    Pathfinder pathFinder;
+
+    std::vector<std::vector<sf::Vertex>> paths;
 
     CollisionManager();
     virtual void update(sf::Time timeDelta, Agent *agent);
@@ -100,6 +107,10 @@ struct CollisionManager : public Controller {
     bool isPassable(int tileX, int tileY);
     void scheduleDelete(b2Body *body);
     int getPoints() const;
+    std::vector<sf::Vertex> getJumpPath(sf::Vector2i start, sf::Vector2i target);
+    std::vector<sf::Vertex> getSearchPath(sf::Vector2i start, sf::Vector2i target);
+    bool canJumpBetween(sf::Vector2i start, sf::Vector2i target);
+    void updatePaths();
 };
 
 

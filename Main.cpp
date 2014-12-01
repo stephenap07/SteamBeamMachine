@@ -43,7 +43,7 @@ int main()
          0,  0,  0,  0,  0, 80, 81, 82,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0, 80, 81, 82,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0,120,121,122,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 40, 41, 42,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 40, 42,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         41, 41, 41, 41, 41, 41, 41, 41, 41, 42,  0,  0,  0, 40, 41, 41, 41, 41, 81, 81, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
@@ -80,7 +80,7 @@ int main()
         0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  3,  3,  3,  0,  0,  0,  0,  0,
         0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,
@@ -118,6 +118,8 @@ int main()
     collisionController->tileSize = tileSize;
     collisionController->mapWidth = 32;
     collisionController->mapHeight = tileSize;
+    collisionController->tileMap = &mapLayerGround;
+    collisionController->agent = &agent;
     collisionController->initPhysics(&agent);
 
     /* Initialize SFML Debug Draw */
@@ -154,23 +156,11 @@ int main()
 
     bool renderDebug = false;
 
-    Pathfinder pathFinder(&mapLayerGround);
-    std::vector<Node> path = pathFinder.getPath(Node(0, 12), Node(18, 11));
+ 
+    sf::Vector2i startTile(9, 11);
+    sf::Vector2i targetTile(14, 11);
 
-    std::vector<std::vector<sf::Vertex>> paths;
-    std::vector<sf::Vertex> linePoints;
-    bool setFirst = false;
-    for (auto node : path) {
-        sf::Vector2f point((float)node.x * tileSize + tileSize / 2.0f, (float)node.y * tileSize + tileSize / 2.0f);
-        sf::Vertex vertex(point, sf::Color::Blue);
-        linePoints.push_back(sf::Vertex(vertex));
-        if (setFirst)
-            linePoints.push_back(vertex);
-        else
-            setFirst = true;
-        std::cout << "(" << node.x << ", " << node.y << ")" << std::endl;
-    }
-    paths.push_back(linePoints);
+    std::vector<std::vector<sf::Vertex>> &paths = collisionController->paths;
 
     while (window.isOpen())
     {

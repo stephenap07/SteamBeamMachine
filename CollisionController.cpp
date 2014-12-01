@@ -29,15 +29,19 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent)
 
         if (cmd == command_e::WALK_RIGHT) {
             agent->currentDir = Agent::direction::RIGHT;
-            desiredVel = b2Max(vel.x - 0.1f, 5.0f );
+            desiredVel = 5.0f;
         }
 
         if (cmd == command_e::STOP) {
-            desiredVel = vel.x * 0.8f;
+            desiredVel = 0.0f;
+        } else {
+            updatePaths();
         }
  
         if (cmd == command_e::JUMP && agent->phys.isOnGround) {
-            agentBody->ApplyForce(-3.0f*world->GetGravity(), agentBody->GetWorldCenter(), true);
+            b2Vec2 vel = agentBody->GetLinearVelocity();
+            vel.y = -10;//upwards - don't change x velocity
+            agentBody->SetLinearVelocity( vel );
         }
 
         if (cmd == command_e::RESTART) {
@@ -73,6 +77,7 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent)
  */
 void CollisionManager::initPhysics(Agent *agent)
 {
+    pathFinder.setMap(tileMap);
     std::vector<bool> tilesVisited(mapWidth*mapHeight, false);
     const float tileScale = tileSize / sfdd::SCALE;
 
@@ -167,7 +172,7 @@ void CollisionManager::initPhysics(Agent *agent)
     myFixtureDef.density = 1;
 
     // add foot sensor fixture
-    polygonShape.SetAsBox(bounds.width / 4.0f / sfdd::SCALE, bounds.height / 8.0f /  sfdd::SCALE, b2Vec2(0, bounds.height / 2.0f /  sfdd::SCALE), 0);
+    polygonShape.SetAsBox(bounds.width / 4.0f / sfdd::SCALE, bounds.height / 16.0f /  sfdd::SCALE, b2Vec2(0, bounds.height / 2.0f /  sfdd::SCALE), 0);
     myFixtureDef.isSensor = true;
     b2Fixture* footSensorFixture = agentBody->CreateFixture(&myFixtureDef);
     footSensorFixture->SetUserData( (void*)collisionType_e::FOOT );
@@ -223,4 +228,111 @@ void CollisionManager::scheduleDelete(b2Body *body)
 int CollisionManager::getPoints() const
 {
     return points;
+}
+
+
+std::vector<sf::Vertex> CollisionManager::getJumpPath(sf::Vector2i start, sf::Vector2i target)
+{
+    sf::Vector2f startPos((start.x) * tileSize + tileSize/2.0f, (start.y + 1) * tileSize + tileSize/2.0f);
+    sf::Vector2f targetPos((target.x) * tileSize + tileSize/2.0f, (target.y + 1) * tileSize + tileSize/2.0f);
+
+    const float gravity = 40.0f;
+    const float vY = -10.0f;
+    const float vX = 5.0f;
+ 
+    float vertDist = (targetPos - startPos).y / sfdd::SCALE;
+    float horzDist = (targetPos - startPos).x / sfdd::SCALE;
+    float timeToTop = -vY / gravity;
+    float jumpHeight = -(vY*timeToTop + gravity*timeToTop*timeToTop/2.0f);
+
+    std::vector<sf::Vertex> arcPoints;
+    if (jumpHeight >= vertDist) {
+        float fallDistance = jumpHeight - vertDist;
+        float timeToFall = std::sqrt(2.0f * fallDistance/gravity);
+        float jumpTime = timeToTop + timeToFall;
+        float jumpLength = vX*jumpTime;
+
+        bool arcSetFirst = false;
+        float startX = startPos.x;
+        float startY = startPos.y;
+
+        for (float t = 0 ; t < jumpTime; t += 1.0f/60.0f) {
+            float x = vX * t;
+            float y = vY * t + gravity*t*t/2.0f;
+
+            sf::Vertex vertex(sf::Vector2f(startX + x*sfdd::SCALE, startY + y*sfdd::SCALE), sf::Color::Red);
+            if (arcSetFirst)
+                arcPoints.push_back(vertex);
+
+            arcPoints.push_back(vertex);
+            arcSetFirst = true;
+        }
+    }
+
+    return arcPoints;
+}
+
+bool CollisionManager::canJumpBetween(sf::Vector2i start, sf::Vector2i target)
+{
+    sf::Vector2f startPos((start.x) * tileSize + tileSize/2.0f, (start.y + 1) * tileSize + tileSize/2.0f);
+    sf::Vector2f targetPos((target.x) * tileSize + tileSize/2.0f, (target.y + 1) * tileSize + tileSize/2.0f);
+
+    const float gravity = 40.0f;
+    const float vY = -10.0f;
+    const float vX = 5.0f;
+ 
+    float vertDist = (targetPos - startPos).y / sfdd::SCALE;
+    float horzDist = (targetPos - startPos).x / sfdd::SCALE;
+    float timeToTop = -vY / gravity;
+    float jumpHeight = -(vY*timeToTop + gravity*timeToTop*timeToTop/2.0f);
+
+    std::vector<sf::Vertex> arcPoints;
+    if (jumpHeight >= vertDist) {
+        float fallDistance = jumpHeight - vertDist;
+        float timeToFall = std::sqrt(2.0f * fallDistance/gravity);
+        float jumpTime = timeToTop + timeToFall;
+        float jumpLength = vX*jumpTime;
+
+        return true;
+    }
+    return false;
+}
+
+std::vector<sf::Vertex> CollisionManager::getSearchPath(sf::Vector2i start, sf::Vector2i target)
+{
+    std::vector<Node> path = pathFinder.getPath(Node(start.x, start.y), Node(target.x, target.y));
+    std::vector<sf::Vertex> linePoints;
+    bool setFirst = false;
+    for (auto node : path) {
+        sf::Vector2f point((float)node.x * tileSize + tileSize / 2.0f, (float)node.y * tileSize + tileSize / 2.0f);
+        sf::Vertex vertex(point, sf::Color::Blue);
+        linePoints.push_back(sf::Vertex(vertex));
+        if (setFirst)
+            linePoints.push_back(vertex);
+        else
+            setFirst = true;
+    }
+
+    return linePoints;
+}
+
+void CollisionManager::updatePaths()
+{
+    paths.clear();
+
+    for (int y = 0; y < mapHeight; y++) {
+        for (int x = 0; x < mapWidth; x++) {
+            if (tileObjArr[y * mapWidth + x]) {
+                sf::Vector2f pos = agent->animatedSprite->getPosition();
+                sf::Vector2i start(pos.x / 16, pos.y / 16);
+                sf::Vector2i end(x, y);
+
+                std::vector<sf::Vertex> linePoints = getSearchPath(start, end);
+                paths.push_back(linePoints);
+            }
+        }
+    }
+
+    //std::vector<sf::Vertex> arcPoints = getJumpPath(startTile, targetTile);
+    //paths.push_back(arcPoints);
 }

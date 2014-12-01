@@ -35,6 +35,52 @@ int Pathfinder::manhattanDistance(Node start, Node goal)
     return std::abs(goal.x - start.x) + std::abs(goal.y - start.y);
 } 
 
+bool Pathfinder::canWalkBetween(Node &current, Node &other)
+{
+    const int distanceX = current.x - other.x;
+    const int distanceY = current.y - other.y;
+
+    return (std::abs(distanceX) == 1 && distanceY == 0);
+}
+
+bool Pathfinder::canJumpBetween(Node &current, Node &other)
+{
+    const int distanceX = current.x - other.x;
+    const int distanceY = current.y - other.y;
+    const int deltaX = clamp(distanceX, -1, 1);
+    const int deltaY = clamp(distanceY, -1, 1);
+}
+
+float Pathfinder::getJumpCost(Node &current, Node &other)
+{
+    return 100.0f;
+}
+
+void Pathfinder::preprocessGrid(Node goal)
+{
+    setNodes(goal);
+    for (Node &current: m_nodes) {
+        for (Node &other : m_nodes) {
+            if (other == current)
+                continue;
+            Edge e(&current, &other);
+
+            if (canWalkBetween(current, other)) {
+                e.edgeType = EdgeType::WALK;
+            } else if (canJumpBetween(current, other)){
+                e.edgeType = EdgeType::JUMP;
+            } else {
+                continue;
+            }
+
+            auto foundEdge = std::find(m_edges.begin(), m_edges.end(), e);
+            if (foundEdge != m_edges.end())
+                continue;
+            m_edges.push_back(e);
+        }
+    }
+}
+
 std::vector<Node*> Pathfinder::nodeNeighbors(const Node *node)
 {
     std::vector<Node*> result;
