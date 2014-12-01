@@ -24,6 +24,19 @@ struct Node {
     }
 };
 
+enum class EdgeType {
+    WALK,
+    JUMP
+};
+
+
+struct Edge {
+    Node *n1;
+    Node *n2;
+    EdgeType edgeType;
+    int jumpPower;
+};
+
 
 class Pathfinder {
     typedef std::list<Node*>::iterator NodeIter;
