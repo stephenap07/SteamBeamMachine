@@ -161,9 +161,11 @@ int main()
     std::vector<sf::Vertex> linePoints;
     bool setFirst = false;
     for (auto node : path) {
-        linePoints.push_back(sf::Vertex(sf::Vector2f((float)node.x * tileSize + tileSize / 2.0f, (float)node.y * tileSize + tileSize / 2.0f)));
+        sf::Vector2f point((float)node.x * tileSize + tileSize / 2.0f, (float)node.y * tileSize + tileSize / 2.0f);
+        sf::Vertex vertex(point, sf::Color::Blue);
+        linePoints.push_back(sf::Vertex(vertex));
         if (setFirst)
-            linePoints.push_back(sf::Vertex(sf::Vector2f((float)node.x * tileSize + tileSize / 2.0f, (float)node.y * tileSize + tileSize / 2.0f)));
+            linePoints.push_back(vertex);
         else
             setFirst = true;
         std::cout << "(" << node.x << ", " << node.y << ")" << std::endl;
