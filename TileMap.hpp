@@ -6,6 +6,12 @@
 class TileMap : public sf::Drawable, public sf::Transformable {
 public:
 
+    virtual ~TileMap()
+    {
+        if (m_tiles)
+            delete [] m_tiles;
+    }
+
     bool load(const std::string& tileset, sf::Vector2u tileSize, const int* tiles, unsigned int width, unsigned int height)
     {
         // load the tileset texture
@@ -19,6 +25,17 @@ public:
 
     void initTiles(sf::Vector2u tileSize, const int *tiles, unsigned int width, unsigned int height)
     {
+        if (m_tiles)
+            delete [] m_tiles;
+        m_tiles = new int[width * height];
+    
+        for (size_t i = 0; i < width*height; i++) {
+            m_tiles[i] = tiles[i];
+        }
+
+        m_width = width;
+        m_height = height;
+
         // resize the vertex array to fit the level size
         m_vertices.setPrimitiveType(sf::Quads);
         m_vertices.resize(width * height * 4);
@@ -50,6 +67,30 @@ public:
             }
     }
 
+    int getWidth() const
+    {
+        return m_width;
+    }
+
+    int getHeight() const
+    {
+        return m_height;
+    }
+
+    int isBlocked(int x, int y) const
+    {
+        int index = y*m_width + x;
+        if (index >= 0 && index < (m_width * m_height))
+            return m_tiles[index] > 0;
+        else
+            return true;
+    }
+
+    const int *getTiles() const
+    {
+        return m_tiles;
+    }
+
 private:
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -66,6 +107,9 @@ private:
 
     sf::VertexArray m_vertices;
     sf::Texture m_tileset;
+    int *m_tiles;
+    int m_width;
+    int m_height;
 };
 
 
