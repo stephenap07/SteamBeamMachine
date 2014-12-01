@@ -22,6 +22,7 @@ enum class CollisionType {
 };
 
 
+static const int tileSize = 16;
 
 int main()
 {
@@ -95,18 +96,18 @@ int main()
     TileMap mapLayerObjects;
 
 	const auto tilePath = "tiles.png";
-	if (!mapLayerGround.load(tilePath, sf::Vector2u(16, 16), ground_layer, 32, 16))
+	if (!mapLayerGround.load(tilePath, sf::Vector2u(tileSize, tileSize), ground_layer, 32, tileSize))
         return -1;
-    if (!mapLayerBackground.load(tilePath, sf::Vector2u(16, 16), sky_layer, 32, 16))
+    if (!mapLayerBackground.load(tilePath, sf::Vector2u(tileSize, tileSize), sky_layer, 32, tileSize))
         return -1;
-    if (!mapLayerObjects.load(tilePath, sf::Vector2u(16, 16), objects_layer, 32, 16))
+    if (!mapLayerObjects.load(tilePath, sf::Vector2u(tileSize, tileSize), objects_layer, 32, tileSize))
         return -1;
 
 	Steamy agent;
 
     auto collisionController = std::shared_ptr<CollisionManager>(new CollisionManager);
-    int dest[32*16];
-    int objDest[32*16];
+    int dest[32*tileSize];
+    int objDest[32*tileSize];
 
     std::copy(std::begin(ground_layer), std::end(ground_layer), std::begin(dest));
     std::copy(std::begin(objects_layer), std::end(objects_layer), std::begin(objDest));
@@ -114,9 +115,9 @@ int main()
     collisionController->map = dest;
     collisionController->objMap = &mapLayerObjects;
     collisionController->tileObjArr = objDest;
-    collisionController->tileSize = 16;
+    collisionController->tileSize = tileSize;
     collisionController->mapWidth = 32;
-    collisionController->mapHeight = 16;
+    collisionController->mapHeight = tileSize;
     collisionController->initPhysics(&agent);
 
     /* Initialize SFML Debug Draw */
@@ -137,11 +138,11 @@ int main()
 
 	fpsCounter.setFont(mainFont);
 	fpsCounter.setColor(sf::Color::Black);
-    fpsCounter.setCharacterSize(16);
+    fpsCounter.setCharacterSize(tileSize);
 
 	scoreCounter.setFont(mainFont);
 	scoreCounter.setColor(sf::Color::Black);
-    scoreCounter.setCharacterSize(16);
+    scoreCounter.setCharacterSize(tileSize);
     scoreCounter.setPosition(window.getView().getSize().x - 100, 0);
 
     sf::Time fpsTimer;
@@ -154,12 +155,20 @@ int main()
     bool renderDebug = false;
 
     Pathfinder pathFinder(&mapLayerGround);
-    /*
     std::vector<Node> path = pathFinder.getPath(Node(0, 12), Node(18, 11));
+
+    std::vector<std::vector<sf::Vertex>> paths;
+    std::vector<sf::Vertex> linePoints;
+    bool setFirst = false;
     for (auto node : path) {
-        //std::cout << "(" << node.x << ", " << node.y << ")" << std::endl;
+        linePoints.push_back(sf::Vertex(sf::Vector2f((float)node.x * tileSize + tileSize / 2.0f, (float)node.y * tileSize + tileSize / 2.0f)));
+        if (setFirst)
+            linePoints.push_back(sf::Vertex(sf::Vector2f((float)node.x * tileSize + tileSize / 2.0f, (float)node.y * tileSize + tileSize / 2.0f)));
+        else
+            setFirst = true;
+        std::cout << "(" << node.x << ", " << node.y << ")" << std::endl;
     }
-    */
+    paths.push_back(linePoints);
 
     while (window.isOpen())
     {
@@ -215,8 +224,12 @@ int main()
         scoreCounter.setString(sstream.str());
         sstream.str("");
 
-        if (renderDebug)
+        if (renderDebug) {
             window.draw(fpsCounter);
+            for (auto line : paths) {
+                window.draw(&line[0], line.size(), sf::Lines);
+            }
+        }
 
         window.draw(scoreCounter);
 
