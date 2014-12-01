@@ -11,7 +11,6 @@ struct Node {
     Node() :x(-1), y(-1), g(0), h(0), parent(nullptr) {}
     Node(int _x, int _y) :x(_x), y(_y), g(0), h(0), parent(nullptr) {}
 
-    bool isValid() const { return (x != -1 && y != -1); }
     void set(int _x, int _y) { x = _x; y = _y; }
 
     float f() const { return g + h; }
@@ -27,9 +26,7 @@ struct Node {
 
 
 class Pathfinder {
-
     typedef std::list<Node*>::iterator NodeIter;
-
     struct Point {
         int x, y;
     };
@@ -37,16 +34,11 @@ class Pathfinder {
 public:
     Pathfinder() :m_tileMap(nullptr) {initSides();}
     Pathfinder(TileMap *tileMap) :m_tileMap(tileMap) {initSides();}
-
     std::vector<Node> getPath(Node start, Node goal);
     void setMap(TileMap *tileMap);
 
 private:
-    int manhattanDistance(Node start, Node goal)
-    {
-        return std::abs(goal.x - start.x) + std::abs(goal.y - start.y);
-    }
-
+    int manhattanDistance(Node start, Node goal);
     void setNodes(Node goal);
 
     std::vector<Node*> identifySuccessors(const Node *current, Node *start, Node *goal);

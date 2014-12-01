@@ -16,6 +16,87 @@ static T clamp(T value, T min, T max)
     return value;
 }
 
+void Pathfinder::initSides()
+{
+    sides = {
+        {  1,  1 },
+        {  1, -1 },
+        { -1,  1 },
+        { -1, -1 },
+        {  0,  1 },
+        {  0, -1 },
+        {  1,  0 },
+        { -1,  0 }
+    };
+}
+
+int Pathfinder::manhattanDistance(Node start, Node goal)
+{
+    return std::abs(goal.x - start.x) + std::abs(goal.y - start.y);
+} 
+
+std::vector<Node*> Pathfinder::nodeNeighbors(const Node *node)
+{
+    std::vector<Node*> result;
+    if (!node->parent) {
+        for (int i = 0; i < 8; i++) {
+            int x = node->x + sides[i].x;
+            int y = node->y + sides[i].y;
+            if (!m_tileMap->isBlocked(x, y)) {
+                result.push_back(getPoolNode(x, y));
+            }
+        }
+        return result;
+    }
+
+    int dX = std::min(std::max(-1, node->x - node->parent->x), 1);
+    int dY = std::min(std::max(-1, node->y - node->parent->y), 1);
+
+    if (dX != 0 && dY != 0) {
+        if (!m_tileMap->isBlocked(node->x, node->y + dY)) {
+            result.push_back(getPoolNode(node->x, node->y + dY));
+        }
+        if (!m_tileMap->isBlocked(node->x + dX, node->y)) {
+            result.push_back(getPoolNode(node->x + dX, node->y));
+        }
+        if (!m_tileMap->isBlocked(node->x, node->y + dY) ||
+            !m_tileMap->isBlocked(node->x + dX, node->y)) {
+            result.push_back(getPoolNode(node->x + dX, node->y + dY));
+        }
+        if (m_tileMap->isBlocked(node->x - dX, node->y) &&
+            !m_tileMap->isBlocked(node->x, node->y + dY)) {
+            result.push_back(getPoolNode(node->x - dX, node->y + dY));
+        }
+        if (m_tileMap->isBlocked(node->x, node->y - dY) &&
+            !m_tileMap->isBlocked(node->x + dX, node->y)) {
+            result.push_back(getPoolNode(node->x + dX, node->y - dY));
+        }
+    } else if (dX == 0) {
+        if (!m_tileMap->isBlocked(node->x, node->y + dY)) {
+            result.push_back(getPoolNode(node->x, node->y + dY)); 
+            if (m_tileMap->isBlocked(node->x + 1, node->y)) {
+                result.push_back(getPoolNode(node->x + 1, node->y + dY)); 
+            }
+            if (m_tileMap->isBlocked(node->x - 1, node->y)) {
+                result.push_back(getPoolNode(node->x - 1, node->y + dY)); 
+            }
+        }
+    } else {
+        if (!m_tileMap->isBlocked(node->x + dX, node->y)) {
+            result.push_back(getPoolNode(node->x + dX, node->y));
+            if (m_tileMap->isBlocked(node->x, node->y + 1)) {
+                result.push_back(getPoolNode(node->x + dX, node->y + 1));
+            }
+            if (m_tileMap->isBlocked(node->x, node->y - 1)) {
+                result.push_back(getPoolNode(node->x + dX, node->y - 1));
+            }
+        }
+    }
+
+    return result;
+}
+
+
 std::vector<Node> Pathfinder::getPath(Node start, Node goal)
 {
     if (m_tileMap == nullptr) {
@@ -27,16 +108,8 @@ std::vector<Node> Pathfinder::getPath(Node start, Node goal)
     std::list<Node*> closedSet;
     setNodes(goal);
 
-    auto startIt= std::find(m_nodes.begin(), m_nodes.end(), start);
-    Node *pStart = nullptr;
-    if (startIt != m_nodes.end())
-        pStart = &(*startIt);
-    else {
-        std::cerr << "Error, start node not found\n";
-        return std::vector<Node>();
-    }
-
-    Node *pGoal = nullptr;
+    Node *pStart = getPoolNode(start.x, start.y);
+    Node *pGoal = getPoolNode(goal.x, goal.y);
 
     openSet.push_back(&(*pStart));
 
@@ -45,7 +118,6 @@ std::vector<Node> Pathfinder::getPath(Node start, Node goal)
         openSet.remove(current);
 
         if (*current == goal) {
-            pGoal = current;
             break;
         }
 
@@ -75,19 +147,21 @@ std::vector<Node> Pathfinder::getPath(Node start, Node goal)
     }
 
     std::vector<Node> result;
+    result.push_back(*pGoal);
     Node *p = pGoal->parent;
     while (p) {
         result.push_back(*p);
         p = p->parent;
     }
 
+    std::reverse(result.begin(), result.end());
     return result;
 }
 
 std::vector<Node*> Pathfinder::identifySuccessors(const Node *current, Node *start, Node *goal)
 {
     std::vector<Node*> successors;
-    std::vector<Node*> neighbors;
+    std::vector<Node*> neighbors = nodeNeighbors(current);
     
     for (auto neighbor : neighbors) {
         // Direction from current node to neighbor:
@@ -105,7 +179,6 @@ std::vector<Node*> Pathfinder::identifySuccessors(const Node *current, Node *sta
     return successors;
 }
 
-
 // cX, cY - Current Node Position,  dX, dY - Direction
 Node *Pathfinder::jump(int cX, int cY, int dX, int dY, Node *start, Node *goal)
 {
@@ -121,33 +194,70 @@ Node *Pathfinder::jump(int cX, int cY, int dX, int dY, Node *start, Node *goal)
  
     // If the node is the goal return it
     if (nextX == goal->x && nextY == goal->y) {
-        result = goal;
-        return result;
+        return getPoolNode(goal->x, goal->y);
     }
+
+    int offsetX = nextX;
+    int offsetY = nextY;
  
     // Diagonal Case  
     if (dX != 0 && dY != 0) {
-        if (true/*... Diagonal Forced Neighbor Check ...*/) {
-            //return Node.pooledNode(nextX, nextY);
-        }
-        
-        // Check in horizontal and vertical directions for forced neighbors
-        // This is a special case for diagonal direction
-        if (jump(nextX, nextY, dX, 0, start, goal) ||
-            jump(nextX, nextY, 0, dY, start, goal))
-        {
-            //return Node.pooledNode(nextX, nextY);
+        while (true) {
+            if ((!m_tileMap->isBlocked(offsetX - dX, offsetY + dY) &&
+                 m_tileMap->isBlocked(offsetX - dX, offsetY)) ||
+                (!m_tileMap->isBlocked(offsetX + dX, offsetY - dY) &&
+                 m_tileMap->isBlocked(offsetX, offsetY - dY))) {
+                return getPoolNode(offsetX, offsetY);
+            }
+            
+            // Check in horizontal and vertical directions for forced neighbors
+            // This is a special case for diagonal direction
+            if (jump(offsetX, offsetY, dX, 0, start, goal) ||
+                jump(offsetX, offsetY, 0, dY, start, goal)) {
+                return getPoolNode(nextX, nextY);
+            }
+            offsetX += dX;
+            offsetY += dY;
+            if (m_tileMap->isBlocked(offsetX, offsetY)) {
+                return nullptr;
+            }
+            if (offsetX == goal->x && offsetY == goal->y) {
+                return getPoolNode(offsetX, offsetY);
+            }
         }
     } else {
-        // Horizontal case
         if (dX != 0) {
-            if (true/*... Horizontal Forced Neighbor Check ...*/) {
-                //return Node.pooledNode(nextX, nextY);
+            while (true) {
+                if ((!m_tileMap->isBlocked(offsetX + dX, nextY + 1) &&
+                     m_tileMap->isBlocked(offsetX, nextY + 1)) ||
+                    (!m_tileMap->isBlocked(offsetX + dX, nextY - 1) &&
+                     m_tileMap->isBlocked(offsetX, offsetY - 1))) {
+                    return getPoolNode(offsetX, offsetY);
+                }
+
+                offsetX += dX;
+                if (m_tileMap->isBlocked(offsetX, offsetY)) {
+                    return nullptr;
+                }
+                if (offsetX == goal->x && nextY == goal->y) {
+                    return getPoolNode(offsetX, nextY);
+                }
             }
-        /// Vertical case
         } else {
-            if (true/*... Vertical Forced Neighbor Check ...*/) {
-                //return Node.pooledNode(nextX, nextY);
+            while (true) {
+                if ((!m_tileMap->isBlocked(nextX + 1, offsetY + dY) &&
+                     m_tileMap->isBlocked(nextX + 1, offsetY)) ||
+                    (!m_tileMap->isBlocked(nextX - 1, offsetY + dY) &&
+                     m_tileMap->isBlocked(nextX - 1, offsetY))) {
+                    return getPoolNode(nextX, offsetY);
+                }
+                offsetY += dY;
+                if (m_tileMap->isBlocked(nextX, offsetY)) {
+                    return nullptr;
+                }
+                if (nextX == goal->x && offsetY == goal->y) {
+                    return getPoolNode(nextX, offsetY);
+                }
             }
         }
     }
@@ -172,60 +282,6 @@ Node *Pathfinder::nextNode(const std::list<Node*> &nodeList)
     }
 
     return lowest;
-}
-
-std::vector<Node*> Pathfinder::nodeNeighbors(const Node *node)
-{
-    std::vector<Node*> result;
-    if (!node->parent) {
-        for (int i = 0; i < 8; i++) {
-            int x = node->x + sides[i].x;
-            int y = node->y + sides[i].y;
-            if (!m_tileMap->isBlocked(x, y)) {
-                result.push_back(&m_nodes[y*m_tileMap->getWidth() + x]);
-            }
-        }
-        return result;
-    }
-
-    int dX = clamp(node->x - node->parent->x, -1, 1);
-    int dY = clamp(node->y - node->parent->y, -1, 1);
-    if (dX != 0 && dY != 0) {
-        if (!m_tileMap->isBlocked(node->x, node->y + dY)) {
-            result.push_back(getPoolNode(node->x, node->y + dY));
-        }
-        if (!m_tileMap->isBlocked(node->x + dX, node->y)) {
-            result.push_back(getPoolNode(node->x + dX, node->y));
-        }
-        if (!m_tileMap->isBlocked(node->x, node->y + dY) ||
-            !m_tileMap->isBlocked(node->x + dX, node->y)) {
-            result.push_back(getPoolNode(node->x + dX, node->y + dY));
-        }
-        if (m_tileMap->isBlocked(node->x - dX, node->y) &&
-            !m_tileMap->isBlocked(node->x, node->y + dY)) {
-            result.push_back(getPoolNode(node->x - dX, node->y + dY));
-        }
-        if (m_tileMap->isBlocked(node->x, node->y - dY) &&
-            !m_tileMap->isBlocked(node->x + dX, node->y)) {
-            result.push_back(getPoolNode(node->x + dX, node->y - dY));
-        }
-    }
-
-    return result;
-}
-
-void Pathfinder::initSides()
-{
-    sides = {
-        {  1,  1 },
-        {  1, -1 },
-        { -1,  1 },
-        { -1, -1 },
-        {  0,  1 },
-        {  0, -1 },
-        {  1,  0 },
-        { -1,  0 }
-    };
 }
 
 void Pathfinder::setNodes(Node goal)

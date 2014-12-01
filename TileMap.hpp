@@ -78,6 +78,11 @@ public:
         return m_height;
     }
 
+    int getTileSize() const
+    {
+        return m_tileSize;
+    }
+
     int isBlocked(int x, int y) const
     {
         int index = y*m_width + x;
@@ -111,6 +116,7 @@ private:
     int *m_tiles;
     int m_width;
     int m_height;
+    int m_tileSize;
 };
 
 
