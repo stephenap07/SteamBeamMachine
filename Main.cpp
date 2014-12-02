@@ -161,6 +161,7 @@ int main()
     sf::Vector2i targetTile(14, 11);
 
     std::vector<std::vector<sf::Vertex>> &paths = collisionController->paths;
+    std::vector<sf::Vertex> jumpPath = collisionController->getJumpPath(sf::Vector2i(9, 11), sf::Vector2i(14, 11));
 
     while (window.isOpen())
     {
@@ -221,6 +222,7 @@ int main()
             for (auto line : paths) {
                 window.draw(&line[0], line.size(), sf::Lines);
             }
+            window.draw(&jumpPath[0], jumpPath.size(), sf::Lines);
         }
 
         window.draw(scoreCounter);
