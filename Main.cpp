@@ -1,5 +1,6 @@
 #include <iostream>
 #include <list>
+#include <array>
 #include <sstream>
 #include <cassert>
 #include <iterator>
@@ -23,6 +24,16 @@ enum class CollisionType {
 
 
 static const int tileSize = 16;
+
+template<size_t W, size_t H>
+struct MapLevel {
+    std::array<int, W*H> level;
+    void set(const int (&levelToCopy)[W*H]) {
+        std::copy(std::begin(levelToCopy), std::end(levelToCopy), std::begin(level));
+    }
+    int width() const { return W; }
+    int height() const { return H; }
+};
 
 int main()
 {
@@ -95,6 +106,9 @@ int main()
     TileMap mapLayerBackground;
     TileMap mapLayerObjects;
 
+    MapLevel<32, 16> mapLevel;
+    mapLevel.set(ground_layer);
+
 	const auto tilePath = "tiles.png";
 	if (!mapLayerGround.load(tilePath, sf::Vector2u(tileSize, tileSize), ground_layer, 32, tileSize))
         return -1;
@@ -153,9 +167,7 @@ int main()
     sf::Clock frameClock;
     float accumulator = 0.0f;
     float dt = 1.0f / 60.0f;
-
     bool renderDebug = false;
-
  
     sf::Vector2i startTile(9, 11);
     sf::Vector2i targetTile(14, 11);
@@ -226,7 +238,6 @@ int main()
         }
 
         window.draw(scoreCounter);
-
         window.display();
     }
 
