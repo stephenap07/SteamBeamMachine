@@ -89,12 +89,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SFML_STATIC;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Gdevelopment\SFML-2.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Gdevelopment\SFML-2.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Gdevelopment\SFML-2.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Gdevelopment\SFML-2.3\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -105,25 +105,25 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Gdevelopment\SFML-2.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Gdevelopment\SFML-2.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Gdevelopment\SFML-2.1\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Gdevelopment\SFML-2.3\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "C:\Gdevelopment\SFML-2.1\lib\$(Configuration)\sfml-graphics-d-2.dll" "$(TargetDir)"
-copy "C:\Gdevelopment\SFML-2.1\lib\$(Configuration)\sfml-window-d-2.dll" "$(TargetDir)"
-copy "C:\Gdevelopment\SFML-2.1\lib\$(Configuration)\sfml-system-d-2.dll" "$(TargetDir)"
+      <Command>copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-graphics-d-2.dll" "$(TargetDir)"
+copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-window-d-2.dll" "$(TargetDir)"
+copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-system-d-2.dll" "$(TargetDir)"
 copy "$(SolutionPath)\..\..\agent.png" "$(TargetDir)"
 copy "$(SolutionPath)\..\..\tiles.png" "$(TargetDir)"
 copy "$(SolutionPath)\..\..\SPFont.ttf" "$(TargetDir)"
 
-copy "C:\Gdevelopment\SFML-2.1\lib\$(Configuration)\sfml-graphics-d-2.dll" "$(OutDir)"
-copy "C:\Gdevelopment\SFML-2.1\lib\$(Configuration)\sfml-window-d-2.dll" "$(OutDir)"
-copy "C:\Gdevelopment\SFML-2.1\lib\$(Configuration)\sfml-system-d-2.dll" "$(OutDir)"
+copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-graphics-d-2.dll" "$(OutDir)"
+copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-window-d-2.dll" "$(OutDir)"
+copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-system-d-2.dll" "$(OutDir)"
 copy "$(SolutionPath)\..\..\agent.png" "$(OutDir)"
 copy "$(SolutionPath)\..\..\tiles.png" "$(OutDir)"
 copy "$(SolutionPath)\..\..\SPFont.ttf" "$(OutDir)"
