@@ -191,7 +191,7 @@ int main() {
 
   std::vector<std::vector<sf::Vertex>> &paths = collisionController->paths;
   std::vector<sf::Vertex> jumpPath = collisionController->getJumpPath(
-      sf::Vector2i(9, 11), sf::Vector2i(14, 11));
+      sf::Vector2i(9, 11), sf::Vector2i(14, 12));
 
   while (window.isOpen()) {
     sf::Event event;
@@ -208,28 +208,24 @@ int main() {
 
     sf::Time frameTime = frameClock.restart();
 
+	const static float physicsSeconds = 0.05f;
+
     // Semi-fixed timestep
-    if (frameTime > sf::seconds(0.25f))
-      frameTime = sf::seconds(0.25f);
+    if (frameTime > sf::seconds(physicsSeconds))
+      frameTime = sf::seconds(physicsSeconds);
 
     accumulator += frameTime.asSeconds();
 
-    while (accumulator >= dt) {
-      agent.fixedUpdate(sf::seconds(dt));
-      accumulator -= dt;
+    if (accumulator >= dt) {
+      while (accumulator >= dt) {
+        agent.fixedUpdate(sf::seconds(dt));
+        accumulator -= dt;
+      }
+      accumulator = 0.0f;
     }
-    accumulator = 0.0f;
     agent.update(sf::seconds(dt));
 
-    window.clear();
-    window.draw(mapLayerBackground);
-    window.draw(mapLayerGround);
-    window.draw(mapLayerObjects);
-    window.draw(*agent.animatedSprite);
-    if (renderDebug)
-      collisionController->draw();
-
-    // Display FPS
+    // Update FPS
     fpsTimer = fpsTimer + frameTime;
     if (fpsTimer > sf::seconds(0.5f) || timerInitialRun) {
       sstream.precision(0);
@@ -240,12 +236,20 @@ int main() {
       timerInitialRun = false;
     }
 
-	/*
     sstream.precision(0);
     sstream << std::fixed << "Score: " << collisionController->getPoints();
     scoreCounter.setString(sstream.str());
     sstream.str("");
-	*/
+
+    window.clear();
+    window.draw(mapLayerBackground);
+    window.draw(mapLayerGround);
+    window.draw(mapLayerObjects);
+    window.draw(*agent.animatedSprite);
+
+    if (renderDebug) {
+      collisionController->draw();
+    }
 
     if (renderDebug) {
       window.draw(fpsCounter);
