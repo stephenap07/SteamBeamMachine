@@ -4,8 +4,8 @@
 #include "Agent.hpp"
 
 struct Controller {
-	virtual void update(sf::Time timeDelta, Agent *agent) {};
-    bool isFixedTimeStep;
+  virtual void update(sf::Time timeDelta, Agent *agent){};
+  bool isFixedTimeStep;
 };
 
 #endif // CONTROLLER_H_

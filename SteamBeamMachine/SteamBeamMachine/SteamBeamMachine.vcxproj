@@ -89,13 +89,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SFML_STATIC;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Gdevelopment\SFML-2.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Gdevelopment\Box2D_v2.2.1;C:\Gdevelopment\SFML-2.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Gdevelopment\SFML-2.3\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Gdevelopment\Box2D_v2.2.1\Build\vs2010\bin\Debug;C:\Gdevelopment\SFML-2.3\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;jpeg.lib;Box2D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -114,20 +114,21 @@
       <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-graphics-d-2.dll" "$(TargetDir)"
-copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-window-d-2.dll" "$(TargetDir)"
-copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-system-d-2.dll" "$(TargetDir)"
-copy "$(SolutionPath)\..\..\agent.png" "$(TargetDir)"
-copy "$(SolutionPath)\..\..\tiles.png" "$(TargetDir)"
-copy "$(SolutionPath)\..\..\SPFont.ttf" "$(TargetDir)"
+      <Command>
+        copy "C:\Gdevelopment\SFML-2.3\bin\sfml-graphics-d-2.dll" "$(TargetDir)"
+        copy "C:\Gdevelopment\SFML-2.3\bin\sfml-window-d-2.dll" "$(TargetDir)"
+        copy "C:\Gdevelopment\SFML-2.3\bin\sfml-system-d-2.dll" "$(TargetDir)"
+        copy "$(SolutionPath)\..\..\agent.png" "$(TargetDir)"
+        copy "$(SolutionPath)\..\..\tiles.png" "$(TargetDir)"
+        copy "$(SolutionPath)\..\..\SPFont.ttf" "$(TargetDir)"
 
-copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-graphics-d-2.dll" "$(OutDir)"
-copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-window-d-2.dll" "$(OutDir)"
-copy "C:\Gdevelopment\SFML-2.3\lib\$(Configuration)\sfml-system-d-2.dll" "$(OutDir)"
-copy "$(SolutionPath)\..\..\agent.png" "$(OutDir)"
-copy "$(SolutionPath)\..\..\tiles.png" "$(OutDir)"
-copy "$(SolutionPath)\..\..\SPFont.ttf" "$(OutDir)"
-</Command>
+        copy "C:\Gdevelopment\SFML-2.3\bin\sfml-graphics-d-2.dll" "$(OutDir)"
+        copy "C:\Gdevelopment\SFML-2.3\bin\sfml-window-d-2.dll" "$(OutDir)"
+        copy "C:\Gdevelopment\SFML-2.3\bin\sfml-system-d-2.dll" "$(OutDir)"
+        copy "$(SolutionPath)\..\..\agent.png" "$(OutDir)"
+        copy "$(SolutionPath)\..\..\tiles.png" "$(OutDir)"
+        copy "$(SolutionPath)\..\..\SPFont.ttf" "$(OutDir)"
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,13 +139,15 @@ copy "$(SolutionPath)\..\..\SPFont.ttf" "$(OutDir)"
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Gdevelopment\Box2D_v2.2.1;C:\Gdevelopment\SFML-2.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\Gdevelopment\Box2D_v2.2.1\Build\vs2010\bin\Release;C:\Gdevelopment\SFML-2.3\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics-s.lib;sfml-window-s.lib;sfml-system-s.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;jpeg.lib;Box2D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -167,15 +170,25 @@ copy "$(SolutionPath)\..\..\SPFont.ttf" "$(OutDir)"
   <ItemGroup>
     <ClCompile Include="..\..\AnimatedSprite.cpp" />
     <ClCompile Include="..\..\Animation.cpp" />
-    <ClCompile Include="..\..\AStar.cpp" />
+    <ClCompile Include="..\..\CollisionController.cpp" />
     <ClCompile Include="..\..\Main.cpp" />
+    <ClCompile Include="..\..\Map.cpp" />
+    <ClCompile Include="..\..\Pathfinding.cpp" />
+    <ClCompile Include="..\..\SFMLDebugDraw.cpp" />
+    <ClCompile Include="..\..\Steamy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Agent.hpp" />
     <ClInclude Include="..\..\AnimatedSprite.hpp" />
     <ClInclude Include="..\..\Animation.hpp" />
-    <ClInclude Include="..\..\geometry.h" />
-    <ClInclude Include="..\..\node.h" />
+    <ClInclude Include="..\..\CollisionController.hpp" />
+    <ClInclude Include="..\..\Controller.hpp" />
+    <ClInclude Include="..\..\KeyboardController.hpp" />
+    <ClInclude Include="..\..\Mapper.h" />
+    <ClInclude Include="..\..\Pathfinding.hpp" />
+    <ClInclude Include="..\..\SFMLDebugDraw.h" />
+    <ClInclude Include="..\..\Steamy.hpp" />
+    <ClInclude Include="..\..\TileMap.hpp" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

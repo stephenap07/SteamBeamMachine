@@ -6,18 +6,9 @@
 #include <ctime>
 #include <cmath>
 
-
-
-
-class Map
-{
+class Map {
 public:
-	int * Init();
+  int *Init();
 };
-
-
-
-
-
 
 #endif
