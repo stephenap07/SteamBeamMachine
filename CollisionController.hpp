@@ -14,25 +14,35 @@
 #include "Pathfinding.hpp"
 #include "Agent.hpp"
 
-struct CollisionManager : public Controller {
-  enum collisionType_e { COIN = 3, FOOT };
+struct CollisionManager : public Controller
+{
+  enum collisionType_e
+  {
+    COIN = 3,
+    FOOT
+  };
 
-  struct FootContactListener : public b2ContactListener {
-    FootContactListener() : numFootContacts(0) {}
+  struct FootContactListener : public b2ContactListener
+  {
+    FootContactListener()
+      : numFootContacts(0)
+    {
+    }
 
-    void BeginContact(b2Contact *contact) {
+    void BeginContact(b2Contact* contact) override
+    {
       // check if fixture A was the foot sensor
-      int dataA =
-          (long)reinterpret_cast<long *>(contact->GetFixtureA()->GetUserData());
-      int dataB =
-          (long)reinterpret_cast<long *>(contact->GetFixtureB()->GetUserData());
+      long dataA =
+        (long)reinterpret_cast<long*>(contact->GetFixtureA()->GetUserData());
+      long dataB =
+        (long)reinterpret_cast<long*>(contact->GetFixtureB()->GetUserData());
 
       if (dataA != collisionType_e::COIN && dataB != collisionType_e::COIN) {
         if (dataA == collisionType_e::FOOT || dataB == collisionType_e::FOOT) {
           numFootContacts++;
         }
       } else {
-        b2Body *body;
+        b2Body* body;
         if (dataA == collisionType_e::COIN) {
           body = contact->GetFixtureA()->GetBody();
         } else {
@@ -49,11 +59,12 @@ struct CollisionManager : public Controller {
       }
     }
 
-    void EndContact(b2Contact *contact) {
+    void EndContact(b2Contact* contact) override
+    {
       int dataA =
-          (long)reinterpret_cast<int *>(contact->GetFixtureA()->GetUserData());
+        (long)reinterpret_cast<int*>(contact->GetFixtureA()->GetUserData());
       int dataB =
-          (long)reinterpret_cast<int *>(contact->GetFixtureB()->GetUserData());
+        (long)reinterpret_cast<int*>(contact->GetFixtureB()->GetUserData());
 
       if (dataA != collisionType_e::COIN && dataB != collisionType_e::COIN) {
         if (dataA == collisionType_e::FOOT || dataB == collisionType_e::FOOT) {
@@ -66,19 +77,18 @@ struct CollisionManager : public Controller {
     bool isOnGround() { return numFootContacts > 0; }
 
     int numFootContacts;
-    int *tileArr;
-    TileMap *tileMap;
+    int* tileArr;
+    TileMap* tileMap;
     int tileSize;
     int mapWidth;
     int mapHeight;
-    CollisionManager *controller;
+    CollisionManager* controller;
   };
 
-  bool isFixedTimeStep;
-  int *map;
-  TileMap *objMap;
-  TileMap *tileMap;
-  int *tileObjArr;
+  int* map;
+  TileMap* objMap;
+  TileMap* tileMap;
+  int* tileObjArr;
   int tileSize;
   int mapWidth;
   int mapHeight;
@@ -86,24 +96,24 @@ struct CollisionManager : public Controller {
   int mapY;
   int points;
   FootContactListener listener;
-  Agent *agent;
+  Agent* agent;
 
   b2Vec2 gravity;
   std::unique_ptr<b2World> world;
-  b2Body *agentBody;
+  b2Body* agentBody;
   std::vector<b2BodyDef> bodyDefs;
-  std::set<b2Body *> bodiesToDelete;
+  std::set<b2Body*> bodiesToDelete;
   Pathfinder pathFinder;
 
   std::vector<std::vector<sf::Vertex>> paths;
 
   CollisionManager();
-  virtual void update(sf::Time timeDelta, Agent *agent);
+  virtual void update(sf::Time timeDelta, Agent* agent);
   void initPhysics();
-  void initPhysics(Agent *agent);
+  void initPhysics(Agent* agent);
   void draw();
   bool isPassable(int tileX, int tileY);
-  void scheduleDelete(b2Body *body);
+  void scheduleDelete(b2Body* body);
   int getPoints() const;
   std::vector<sf::Vertex> getJumpPath(sf::Vector2i start, sf::Vector2i target);
   std::vector<sf::Vertex> getSearchPath(sf::Vector2i start,

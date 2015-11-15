@@ -5,7 +5,10 @@
 
 #include "Pathfinding.hpp"
 
-template <typename T> static T clamp(T value, T min, T max) {
+template <typename T>
+static T
+clamp(T value, T min, T max)
+{
   if (value < min) {
     return min;
   } else if (value > max) {
@@ -14,23 +17,31 @@ template <typename T> static T clamp(T value, T min, T max) {
   return value;
 }
 
-void Pathfinder::initSides() {
-  sides = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1},
-           {0, 1}, {0, -1}, {1, 0},  {-1, 0}};
+void
+Pathfinder::initSides()
+{
+  sides = { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 },
+            { 0, 1 }, { 0, -1 }, { 1, 0 },  { -1, 0 } };
 }
 
-int Pathfinder::manhattanDistance(Node start, Node goal) {
+int
+Pathfinder::manhattanDistance(Node start, Node goal)
+{
   return std::abs(goal.x - start.x) + std::abs(goal.y - start.y);
 }
 
-bool Pathfinder::canWalkBetween(Node &current, Node &other) {
+bool
+Pathfinder::canWalkBetween(Node& current, Node& other)
+{
   const int distanceX = current.x - other.x;
   const int distanceY = current.y - other.y;
 
   return (std::abs(distanceX) == 1 && distanceY == 0);
 }
 
-bool Pathfinder::canJumpBetween(Node &current, Node &other) {
+bool
+Pathfinder::canJumpBetween(Node& current, Node& other)
+{
   const int distanceX = current.x - other.x;
   const int distanceY = current.y - other.y;
   const int deltaX = clamp(distanceX, -1, 1);
@@ -39,12 +50,18 @@ bool Pathfinder::canJumpBetween(Node &current, Node &other) {
   return false;
 }
 
-float Pathfinder::getJumpCost(Node &current, Node &other) { return 100.0f; }
+float
+Pathfinder::getJumpCost(Node& current, Node& other)
+{
+  return 100.0f;
+}
 
-void Pathfinder::preprocessGrid(Node goal) {
+void
+Pathfinder::preprocessGrid(Node goal)
+{
   setNodes(goal);
-  for (Node &current : m_nodes) {
-    for (Node &other : m_nodes) {
+  for (Node& current : m_nodes) {
+    for (Node& other : m_nodes) {
       if (other == current)
         continue;
       Edge e(&current, &other);
@@ -65,8 +82,14 @@ void Pathfinder::preprocessGrid(Node goal) {
   }
 }
 
-std::vector<Node *> Pathfinder::nodeNeighbors(const Node *node) {
-  std::vector<Node *> result;
+std::vector<Node*>
+Pathfinder::nodeNeighbors(const Node* node)
+{
+  if (!node) {
+    return {};
+  }
+
+  std::vector<Node*> result;
   if (!node->parent) {
     for (int i = 0; i < 8; i++) {
       int x = node->x + sides[i].x;
@@ -125,23 +148,25 @@ std::vector<Node *> Pathfinder::nodeNeighbors(const Node *node) {
   return result;
 }
 
-std::vector<Node> Pathfinder::getPath(Node start, Node goal) {
+std::vector<Node>
+Pathfinder::getPath(Node start, Node goal)
+{
   if (m_tileMap == nullptr) {
     std::cerr << "Error, map must not be null\n";
     return std::vector<Node>();
   }
 
-  std::list<Node *> openSet;
-  std::list<Node *> closedSet;
+  std::list<Node*> openSet;
+  std::list<Node*> closedSet;
   setNodes(goal);
 
-  Node *pStart = getPoolNode(start.x, start.y);
-  Node *pGoal = getPoolNode(goal.x, goal.y);
+  Node* pStart = getPoolNode(start.x, start.y);
+  Node* pGoal = getPoolNode(goal.x, goal.y);
 
   openSet.push_back(&(*pStart));
 
   while (!openSet.empty()) {
-    Node *current = nextNode(openSet);
+    Node* current = nextNode(openSet);
     openSet.remove(current);
 
     if (*current == goal) {
@@ -150,9 +175,9 @@ std::vector<Node> Pathfinder::getPath(Node start, Node goal) {
 
     auto successors = identifySuccessors(current, pStart, pGoal);
 
-    for (Node *neighbor : successors) {
+    for (Node* neighbor : successors) {
       NodeIter find_closed =
-          std::find(closedSet.begin(), closedSet.end(), neighbor);
+        std::find(closedSet.begin(), closedSet.end(), neighbor);
       if (find_closed != closedSet.end()) {
         continue;
       }
@@ -176,7 +201,7 @@ std::vector<Node> Pathfinder::getPath(Node start, Node goal) {
 
   std::vector<Node> result;
   result.push_back(*pGoal);
-  Node *p = pGoal->parent;
+  Node* p = pGoal->parent;
   while (p) {
     result.push_back(*p);
     p = p->parent;
@@ -186,10 +211,11 @@ std::vector<Node> Pathfinder::getPath(Node start, Node goal) {
   return result;
 }
 
-std::vector<Node *> Pathfinder::identifySuccessors(const Node *current,
-                                                   Node *start, Node *goal) {
-  std::vector<Node *> successors;
-  std::vector<Node *> neighbors = nodeNeighbors(current);
+std::vector<Node*>
+Pathfinder::identifySuccessors(const Node* current, Node* start, Node* goal)
+{
+  std::vector<Node*> successors;
+  std::vector<Node*> neighbors = nodeNeighbors(current);
 
   for (auto neighbor : neighbors) {
     // Direction from current node to neighbor:
@@ -197,7 +223,7 @@ std::vector<Node *> Pathfinder::identifySuccessors(const Node *current,
     int dY = clamp(neighbor->y - current->y, -1, 1);
 
     // Try to find a node to jump to:
-    Node *jumpPoint = jump(current->x, current->y, dX, dY, start, goal);
+    Node* jumpPoint = jump(current->x, current->y, dX, dY, start, goal);
 
     // If found add it to the list:
     if (jumpPoint)
@@ -208,13 +234,14 @@ std::vector<Node *> Pathfinder::identifySuccessors(const Node *current,
 }
 
 // cX, cY - Current Node Position,  dX, dY - Direction
-Node *Pathfinder::jump(int cX, int cY, int dX, int dY, Node *start,
-                       Node *goal) {
+Node*
+Pathfinder::jump(int cX, int cY, int dX, int dY, Node* start, Node* goal)
+{
   // Position of new node we are going to consider:
   int nextX = cX + dX;
   int nextY = cY + dY;
 
-  Node *result = nullptr;
+  Node* result = nullptr;
 
   // If it's blocked we can't jump here
   if (m_tileMap->isBlocked(nextX, nextY))
@@ -294,11 +321,13 @@ Node *Pathfinder::jump(int cX, int cY, int dX, int dY, Node *start,
   return jump(nextX, nextY, dX, dY, start, goal);
 }
 
-Node *Pathfinder::nextNode(const std::list<Node *> &nodeList) {
+Node*
+Pathfinder::nextNode(const std::list<Node*>& nodeList)
+{
   if (nodeList.empty())
     return nullptr;
 
-  Node *lowest = nullptr;
+  Node* lowest = nullptr;
   for (auto node : nodeList) {
     if (lowest == nullptr) {
       lowest = node;
@@ -311,7 +340,9 @@ Node *Pathfinder::nextNode(const std::list<Node *> &nodeList) {
   return lowest;
 }
 
-void Pathfinder::setNodes(Node goal) {
+void
+Pathfinder::setNodes(Node goal)
+{
   m_nodes.clear();
   for (int y = 0; y < m_tileMap->getHeight(); y++) {
     for (int x = 0; x < m_tileMap->getWidth(); x++) {
@@ -322,6 +353,8 @@ void Pathfinder::setNodes(Node goal) {
   }
 }
 
-Node *Pathfinder::getPoolNode(int x, int y) {
+Node*
+Pathfinder::getPoolNode(int x, int y)
+{
   return &m_nodes[y * m_tileMap->getWidth() + x];
 }

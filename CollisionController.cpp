@@ -1,18 +1,26 @@
 #include <iostream>
 #include "CollisionController.hpp"
 
-template <typename T> b2Vec2 sfVecToB2Vec(sf::Vector2<T> vector) {
+template <typename T>
+b2Vec2
+sfVecToB2Vec(sf::Vector2<T> vector)
+{
   return b2Vec2(vector.x / sfdd::SCALE, vector.y / sfdd::SCALE);
 }
 
 CollisionManager::CollisionManager()
-    : isFixedTimeStep(false), mapX(0), mapY(0), points(0) {
+  : mapX(0)
+  , mapY(0)
+  , points(0)
+{
   gravity.Set(0.0f, 40.0f);
   world = std::unique_ptr<b2World>(new b2World(gravity));
   world->SetContactListener(&listener);
 }
 
-void CollisionManager::update(sf::Time timeDelta, Agent *agent) {
+void
+CollisionManager::update(sf::Time timeDelta, Agent* agent)
+{
   sf::FloatRect rect = agent->animatedSprite->getLocalBounds();
   b2Vec2 vel = agentBody->GetLinearVelocity();
   float desiredVel = 0;
@@ -51,8 +59,8 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent) {
 
   float velChange = desiredVel - vel.x;
   float impulse = agentBody->GetMass() * velChange;
-  agentBody->ApplyLinearImpulse(b2Vec2(impulse, 0),
-                                agentBody->GetWorldCenter());
+  agentBody->ApplyLinearImpulse(b2Vec2(impulse, 0), agentBody->GetWorldCenter(),
+                                true);
 
   const int velocityIterations = 6;
   const int positionIterations = 2;
@@ -61,8 +69,8 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent) {
   // Set the position of our agent
   b2Vec2 bodyPos = agentBody->GetPosition();
   agent->animatedSprite->setPosition(
-      bodyPos.x * sfdd::SCALE - rect.width / 2.0f,
-      bodyPos.y * sfdd::SCALE - rect.height / 2.0f);
+    bodyPos.x * sfdd::SCALE - rect.width / 2.0f,
+    bodyPos.y * sfdd::SCALE - rect.height / 2.0f);
   agent->phys.isOnGround = listener.isOnGround();
 
   for (auto body : bodiesToDelete) {
@@ -75,7 +83,9 @@ void CollisionManager::update(sf::Time timeDelta, Agent *agent) {
 /**
  * Create box2d bodies and insert into world
  */
-void CollisionManager::initPhysics(Agent *agent) {
+void
+CollisionManager::initPhysics(Agent* agent)
+{
   pathFinder.setMap(tileMap);
   std::vector<bool> tilesVisited(mapWidth * mapHeight, false);
   const float tileScale = tileSize / sfdd::SCALE;
@@ -113,11 +123,10 @@ void CollisionManager::initPhysics(Agent *agent) {
     sf::FloatRect rect(firstVec, (secondVec - firstVec + sf::Vector2f(1, 1)));
 
     b2BodyDef groundBodyDef;
-    groundBodyDef.position.Set((rect.left + rect.width) * tileScale -
-                                   (rect.width * tileScale / 2.0f),
-                               (rect.top + rect.height) * tileScale -
-                                   (rect.height * tileScale / 2.0f));
-    b2Body *groundBody = world->CreateBody(&groundBodyDef);
+    groundBodyDef.position.Set(
+      (rect.left + rect.width) * tileScale - (rect.width * tileScale / 2.0f),
+      (rect.top + rect.height) * tileScale - (rect.height * tileScale / 2.0f));
+    b2Body* groundBody = world->CreateBody(&groundBodyDef);
 
     b2PolygonShape groundBox;
     groundBox.SetAsBox(rect.width * tileScale / 2.0f,
@@ -146,12 +155,11 @@ void CollisionManager::initPhysics(Agent *agent) {
   agentBody->CreateFixture(&fixtureDef);
 
   b2PolygonShape rightSideBox;
-  rightSideBox.SetAsBox(bounds.width / 8.0f / sfdd::SCALE,
-                        bounds.height / 2.0f / sfdd::SCALE,
-                        b2Vec2(bounds.width / 2.0f / sfdd::SCALE -
-                                   bounds.width / 8.0f / sfdd::SCALE,
-                               0),
-                        0);
+  rightSideBox.SetAsBox(
+    bounds.width / 8.0f / sfdd::SCALE, bounds.height / 2.0f / sfdd::SCALE,
+    b2Vec2(
+      bounds.width / 2.0f / sfdd::SCALE - bounds.width / 8.0f / sfdd::SCALE, 0),
+    0);
 
   b2FixtureDef rightSideDef;
   rightSideDef.shape = &rightSideBox;
@@ -182,8 +190,8 @@ void CollisionManager::initPhysics(Agent *agent) {
                         bounds.height / 16.0f / sfdd::SCALE,
                         b2Vec2(0, bounds.height / 2.0f / sfdd::SCALE), 0);
   myFixtureDef.isSensor = true;
-  b2Fixture *footSensorFixture = agentBody->CreateFixture(&myFixtureDef);
-  footSensorFixture->SetUserData((void *)collisionType_e::FOOT);
+  b2Fixture* footSensorFixture = agentBody->CreateFixture(&myFixtureDef);
+  footSensorFixture->SetUserData((void*)collisionType_e::FOOT);
 
   // add sensors for coins
 
@@ -195,7 +203,7 @@ void CollisionManager::initPhysics(Agent *agent) {
     for (int x = 0; x < mapWidth; x++) {
       if (tileObjArr[y * mapWidth + x] == collisionType_e::COIN) {
         b2BodyDef coinDef;
-        b2Body *coinBody;
+        b2Body* coinBody;
         coinDef.type = b2_staticBody;
         coinDef.position.Set((x * tileSize + tileSize / 2.0f) / sfdd::SCALE,
                              (y * tileSize + tileSize / 2.0f) / sfdd::SCALE);
@@ -206,8 +214,8 @@ void CollisionManager::initPhysics(Agent *agent) {
         coinFixtureDef.density = 1;
 
         coinFixtureDef.isSensor = true;
-        b2Fixture *coinSensorFixture = coinBody->CreateFixture(&coinFixtureDef);
-        coinSensorFixture->SetUserData((void *)collisionType_e::COIN);
+        b2Fixture* coinSensorFixture = coinBody->CreateFixture(&coinFixtureDef);
+        coinSensorFixture->SetUserData((void*)collisionType_e::COIN);
 
         listener.tileArr = tileObjArr;
         listener.tileMap = objMap;
@@ -220,20 +228,33 @@ void CollisionManager::initPhysics(Agent *agent) {
   }
 }
 
-void CollisionManager::draw() { world->DrawDebugData(); }
+void
+CollisionManager::draw()
+{
+  world->DrawDebugData();
+}
 
-bool CollisionManager::isPassable(int tileX, int tileY) {
+bool
+CollisionManager::isPassable(int tileX, int tileY)
+{
   return map[tileY * mapWidth + tileX] == 0;
 }
 
-void CollisionManager::scheduleDelete(b2Body *body) {
+void
+CollisionManager::scheduleDelete(b2Body* body)
+{
   bodiesToDelete.insert(body);
 }
 
-int CollisionManager::getPoints() const { return points; }
+int
+CollisionManager::getPoints() const
+{
+  return points;
+}
 
-std::vector<sf::Vertex> CollisionManager::getJumpPath(sf::Vector2i start,
-                                                      sf::Vector2i target) {
+std::vector<sf::Vertex>
+CollisionManager::getJumpPath(sf::Vector2i start, sf::Vector2i target)
+{
   sf::Vector2f startPos((start.x) * tileSize + tileSize / 2.0f,
                         (start.y + 1) * tileSize + tileSize / 2.0f);
   sf::Vector2f targetPos((target.x) * tileSize + tileSize / 2.0f,
@@ -264,8 +285,8 @@ std::vector<sf::Vertex> CollisionManager::getJumpPath(sf::Vector2i start,
       float y = vY * t + gravity * t * t / 2.0f;
 
       sf::Vertex vertex(
-          sf::Vector2f(startX + x * sfdd::SCALE, startY + y * sfdd::SCALE),
-          sf::Color::Red);
+        sf::Vector2f(startX + x * sfdd::SCALE, startY + y * sfdd::SCALE),
+        sf::Color::Red);
       if (arcSetFirst)
         arcPoints.push_back(vertex);
 
@@ -277,7 +298,9 @@ std::vector<sf::Vertex> CollisionManager::getJumpPath(sf::Vector2i start,
   return arcPoints;
 }
 
-bool CollisionManager::canJumpBetween(sf::Vector2i start, sf::Vector2i target) {
+bool
+CollisionManager::canJumpBetween(sf::Vector2i start, sf::Vector2i target)
+{
   sf::Vector2f startPos((start.x) * tileSize + tileSize / 2.0f,
                         (start.y + 1) * tileSize + tileSize / 2.0f);
   sf::Vector2f targetPos((target.x) * tileSize + tileSize / 2.0f,
@@ -287,8 +310,9 @@ bool CollisionManager::canJumpBetween(sf::Vector2i start, sf::Vector2i target) {
   const float vY = -10.0f;
   const float vX = 5.0f;
 
-  float vertDist = (targetPos - startPos).y / sfdd::SCALE;
-  float horzDist = (targetPos - startPos).x / sfdd::SCALE;
+  const sf::Vector2f distanceVec{targetPos - startPos};
+  float vertDist = distanceVec.y / sfdd::SCALE;
+  float horzDist = distanceVec.x / sfdd::SCALE;
   float timeToTop = -vY / gravity;
   float jumpHeight = -(vY * timeToTop + gravity * timeToTop * timeToTop / 2.0f);
 
@@ -304,10 +328,25 @@ bool CollisionManager::canJumpBetween(sf::Vector2i start, sf::Vector2i target) {
   return false;
 }
 
-std::vector<sf::Vertex> CollisionManager::getSearchPath(sf::Vector2i start,
-                                                        sf::Vector2i target) {
+static bool
+isValidPoint(sf::Vector2i point, int mapWidth, int mapHeight)
+{
+  if (point.x < 0 || point.y < 0 || point.x > mapWidth || point.y > mapHeight) {
+    return false;
+  }
+}
+
+std::vector<sf::Vertex>
+CollisionManager::getSearchPath(sf::Vector2i start, sf::Vector2i target)
+{
+  if (!isValidPoint(start, mapWidth, mapHeight) ||
+      !isValidPoint(target, mapWidth, mapHeight)) {
+    return {};
+  }
+
   std::vector<Node> path =
-      pathFinder.getPath(Node(start.x, start.y), Node(target.x, target.y));
+    pathFinder.getPath(Node(start.x, start.y), Node(target.x, target.y));
+
   std::vector<sf::Vertex> linePoints;
   bool setFirst = false;
   for (auto node : path) {
@@ -324,7 +363,9 @@ std::vector<sf::Vertex> CollisionManager::getSearchPath(sf::Vector2i start,
   return linePoints;
 }
 
-void CollisionManager::updatePaths() {
+void
+CollisionManager::updatePaths()
+{
   paths.clear();
 
   for (int y = 0; y < mapHeight; y++) {

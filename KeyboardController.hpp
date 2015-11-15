@@ -3,18 +3,21 @@
 
 #include "Controller.hpp"
 
-struct KeyboardController : Controller {
-
-  KeyboardController() : isFixedTimeStep(true), playRecording(false) {
+struct KeyboardController : Controller
+{
+  KeyboardController()
+    : playRecording(false)
+  {
     sf::Time timer;
   }
 
-  virtual void update(sf::Time timeDelta, Agent *agent) {
+  virtual void update(sf::Time timeDelta, Agent* agent)
+  {
     timer += timeDelta;
-    PhysicalProperties *phys = &(agent->phys);
+    PhysicalProperties* phys = &(agent->phys);
     phys->jumpAcceleration = 0.0f;
 
-    Event event = {{}, timer};
+    Event event = { timer, {} };
 
     if (!playRecording) {
       bool noKeyWasPressed = true;
@@ -40,6 +43,12 @@ struct KeyboardController : Controller {
         agent->eventManager.pushCommand(event, command_e::RESTART);
       }
 
+      if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+        timer = sf::seconds(0);
+        agent->animatedSprite->setPosition(0, 0);
+        agent->eventManager.pushCommand(event, command_e::RESTART);
+      }
+
       if (noKeyWasPressed) {
         agent->eventManager.pushCommand(event, command_e::STOP);
       } else
@@ -53,7 +62,6 @@ struct KeyboardController : Controller {
     }
   }
 
-  bool isFixedTimeStep;
   bool playRecording;
   sf::Time timer;
 };
